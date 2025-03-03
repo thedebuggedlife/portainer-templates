@@ -34,7 +34,7 @@ jobs:
             fi
       
             # Merge the template with the note
-            jq --arg note "$note" '. + { note: $note }' "$file" > tmp.json
+            jq --argjson note "$note" '. + { note: $note }' "$file" > tmp.json
             
             # Append to the "templates" array
             jq '.templates += [input]' templates.json tmp.json > merged.json && mv merged.json templates.json

@@ -32,7 +32,7 @@ sudo chown -R nobody:docker $appdata/grafana
 
 Follow these steps to deploy this project to your server using Portainer:
 
-1. Include the app templates from this repository on your Portainer instance. See [how-to instructions](../README#how-to-use-the-templates) for more info.
+1. Include the app templates from this repository on your Portainer instance. See [how-to instructions](../README.md#how-to-use-the-templates) for more info.
 2. Look for the app template called **Linux Server Monitoring** and click on it.
 3. Review and modify **Configuration** values as appropriate and click on **Deploy the stack**.
 

@@ -4,7 +4,9 @@ This repository hosts templates that can be used to deploy the applications from
 
 ## How to Use The Templates
 
-In the Portainer WebUI, under: Administration > Settings > General > App Templates, set the URL to https://files.thedebugged.life/portainer/templates.json 
+In the Portainer WebUI:
+1. Navigate to Administration > Settings > General > App Templates
+2. Set the URL to https://thedebuggedlife.github.io/portainer-templates/templates.json
 
 ## Table of Contents
 

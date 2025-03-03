@@ -22,6 +22,8 @@ jobs:
       - name: Merge Templates
         run: |
           echo '{"version": "3", "templates": []}' > templates.json  # Initialize JSON structure
+
+          counter=1
           
           find . -name "template.json" -not -path "./templates.json" | while read file; do
             dir=$(dirname "$file")  # Get the directory of the template.json
@@ -29,15 +31,15 @@ jobs:
             # Read and format the notes.html file if it exists
             if [ -f "$dir/notes.html" ]; then
               note=$(cat "$dir/notes.html" | jq -Rs '.')  # Read file, escape newlines properly
+              jq --argjson id "$counter" --argjson note "$note" '. + { id: $id, note: $note }' "$file" > tmp.json
             else
-              note="null"
+              jq --argjson id "$counter" '. + { id: $id }' "$file" > tmp.json
             fi
-      
-            # Merge the template with the note
-            jq --argjson note "$note" '. + { note: $note }' "$file" > tmp.json
             
             # Append to the "templates" array
             jq '.templates += [input]' templates.json tmp.json > merged.json && mv merged.json templates.json
+
+            counter=$((counter + 1))
           done
 
       - name: Upload to GitHub Pages

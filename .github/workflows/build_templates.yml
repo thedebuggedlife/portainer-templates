@@ -42,11 +42,29 @@ jobs:
             counter=$((counter + 1))
           done
 
-      - name: Upload to GitHub Pages
+      - name: Generate ZIP files for appdata folders
+        run: |
+          mkdir -p appdata_zips  # Temporary folder to store ZIP files
+          
+          find . -type d -name "appdata" | while read dir; do
+            parent_dir=$(dirname "$dir")  # Get the parent folder of "appdata"
+            zip_name=$(basename "$parent_dir").zip  # Format: {folder}.zip
+            
+            echo "Creating ZIP: $zip_name"
+            (cd "$dir" && zip -r "../../appdata_zips/$zip_name" .)  # Zip contents, not the folder itself
+          done
+
+      - name: Upload templates.json
         uses: actions/upload-artifact@v4
         with:
           name: templates
           path: templates.json
+
+      - name: Upload ZIP files
+        uses: actions/upload-artifact@v4
+        with:
+          name: appdata_zips
+          path: appdata_zips
 
   deploy:
     runs-on: ubuntu-latest
@@ -61,12 +79,19 @@ jobs:
           name: templates
           path: .
 
+      - name: Download ZIP files
+        uses: actions/download-artifact@v4
+        with:
+          name: appdata_zips
+          path: appdata
+
       - name: Deploy to gh-pages
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout --orphan gh-pages
           git rm -rf .
-          git add templates.json
+          mv appdata_zips appdata
+          git add templates.json appdata/
           git commit -m "Update Portainer Templates"
           git push -f origin gh-pages

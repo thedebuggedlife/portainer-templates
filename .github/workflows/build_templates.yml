@@ -91,7 +91,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout --orphan gh-pages
           git rm -rf .
-          mv appdata_zips appdata
           git add templates.json appdata/
           git commit -m "Update Portainer Templates"
           git push -f origin gh-pages

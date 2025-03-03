@@ -47,7 +47,7 @@ services:
     container_name: smartctl-exporter
     image: prometheuscommunity/smartctl-exporter:latest
     restart: unless-stopped
-    command: ['--smartctl.interval=${SMARTCTL_INTERVAL:-60s}']
+    command: ['--smartctl.interval=${SMARTCTL_INTERVAL:-30s}']
     privileged: true
   cadvisor:
     container_name: cadvisor

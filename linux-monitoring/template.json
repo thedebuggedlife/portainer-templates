@@ -2,7 +2,6 @@
     "type": 3,
     "title": "Linux Server Monitoring",
     "description": "A pre-configured Linux monitoring solution using Docker.",
-    "note": "<p>Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack!</p><pre># Download appdata files\nwget https://files.thedebugged.life/appdata/linux-monitoring.zip\n\n# Unpack into local appdata folder\nunzip -n linux-monitoring.zip -d /srv/appdata/\n\n# Setup proper permissions\nsudo chown -R 472:docker /srv/appdata/grafana\nsudo chown -R 65534:docker /srv/appdata/prometheus</pre><p>See the <a target='_blank' href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring'>template README</a> or the related <a target='_blank' href='https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/'>blog post</a> for more info.",
     "categories": ["monitoring"],
     "platform": "linux",
     "logo": "https://files.thedebugged.life/portainer/monitoring.png",

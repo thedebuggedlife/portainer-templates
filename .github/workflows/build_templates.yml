@@ -21,9 +21,23 @@ jobs:
 
       - name: Merge Templates
         run: |
-          echo "[]" > templates.json  # Start with an empty JSON array
+          echo '{"version": "3", "templates": []}' > templates.json  # Initialize JSON structure
+          
           find . -name "template.json" -not -path "./templates.json" | while read file; do
-            jq -s '.[0] + [.[1]]' templates.json "$file" > tmp.json && mv tmp.json templates.json
+            dir=$(dirname "$file")  # Get the directory of the template.json
+      
+            # Read and format the notes.html file if it exists
+            if [ -f "$dir/notes.html" ]; then
+              note=$(cat "$dir/notes.html" | jq -Rs '.')  # Read file, escape newlines properly
+            else
+              note="null"
+            fi
+      
+            # Merge the template with the note
+            jq --arg note "$note" '. + { note: $note }' "$file" > tmp.json
+            
+            # Append to the "templates" array
+            jq '.templates += [input]' templates.json tmp.json > merged.json && mv merged.json templates.json
           done
 
       - name: Upload to GitHub Pages

@@ -1,0 +1,21 @@
+<p>
+    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack!
+</p>
+<pre>
+# Download appdata files
+wget https://files.thedebugged.life/appdata/linux-monitoring.zip
+
+# Unpack into local appdata folder
+unzip -n linux-monitoring.zip -d /srv/appdata
+
+# Setup proper permissions
+sudo chown -R 472:docker /srv/appdata/grafana
+sudo chown -R 65534:docker /srv/appdata/prometheus
+</pre>
+<p>
+    See the <a target='_blank'
+        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring'>template README</a> or
+    the related <a target='_blank'
+        href='https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/'>blog post</a> for more
+    info.
+</p>

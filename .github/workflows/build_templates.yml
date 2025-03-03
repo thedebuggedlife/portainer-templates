@@ -1,0 +1,53 @@
+name: Generate Portainer Templates
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Merge Templates
+        run: |
+          echo "[]" > templates.json  # Start with an empty JSON array
+          find . -name "template.json" -not -path "./templates.json" | while read file; do
+            jq -s '.[0] + [.[1]]' templates.json "$file" > tmp.json && mv tmp.json templates.json
+          done
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: templates
+          path: templates.json
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download templates.json
+        uses: actions/download-artifact@v4
+        with:
+          name: templates
+          path: .
+
+      - name: Deploy to gh-pages
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git add templates.json
+          git commit -m "Update Portainer Templates"
+          git push -f origin gh-pages

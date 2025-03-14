@@ -5,34 +5,14 @@
 wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-agent.sh | bash
 </pre>
 <p>
-    You can enable or disable individual performance monitors with the <pre>COMPOSE_PROFILES</pre> variable. See the following table for details:
-</p><table>
-    <tr>
-        <td>Profile</td>
-        <td>Monitors</td>
-        <td>Notes</td>
-    </tr>
-    <tr>
-        <td>node</td>
-        <td>CPU, RAM, temperature and other machine-level metrics</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>process</td>
-        <td>Resources used by individual processes</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>smartctl</td>
-        <td>SMART metrics for SDD and HDD devices</td>
-        <td><font color="red">Not supported on arm/arm64 devices</font></td>
-    </tr>
-    <tr>
-        <td>cadvisor</td>
-        <td>Resources used by docker containers</td>
-        <td></td>
-    </tr>
-</table>
+    You can enable or disable individual performance monitors with the <code>COMPOSE_PROFILES</code> variable. See the below for details:
+    <ul>
+        <li><strong>node</strong>: Monitors CPU, RAM, temperature and other machine-level metrics</li>
+        <li><strong>process</strong>: Monitors resources used by individual processes</li>
+        <li><strong>smartctl</strong>: Monitors SMART metrics for SDD and HDD devices</li>
+        <li><strong>cadvisor</strong>: Monitors resources used by docker containers</li>
+    </ul>
+</p>
 <p>
     See the <a target='_blank'
         href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring-agent'>template README</a>

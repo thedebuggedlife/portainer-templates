@@ -13,12 +13,6 @@ volumes:
       type: none
       o: bind
       device: ${APPDATA_LOCATION:-/srv/appdata}/prometheus
-  grafana:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${APPDATA_LOCATION:-/srv/appdata}/grafana
 
 # The services that make up our stack
 
@@ -67,20 +61,8 @@ services:
     image: prom/prometheus
     restart: unless-stopped
     command:
-      - --storage.tsdb.path=/prometheus/data
-      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-90d}
-      - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-150GB}
-      - --web.enable-remote-write-receiver=${PROMETHEUS_ENABLE_REMOTE_WRITES:-false}
+      - --agent
     volumes:
       - prometheus:/prometheus
     extra_hosts:
       - node-exporter:host-gateway
-  grafana:
-    container_name: grafana
-    image: grafana/grafana
-    restart: unless-stopped
-    command: ['--config', /var/lib/grafana/grafana.ini]
-    ports:
-      - ${GRAFANA_WEB_PORT:-3000}:3000
-    volumes:
-      - grafana:/var/lib/grafana

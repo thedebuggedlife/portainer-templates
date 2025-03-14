@@ -1,0 +1,28 @@
+<p>
+    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack!
+</p>
+<pre>
+# Update if your appdata path is different
+appdata=/srv/appdata
+
+# Download appdata files
+wget https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-agent.zip
+
+# Unpack into local appdata folder
+unzip -n linux-monitoring-agent.zip -d $appdata/
+
+# Setup proper permissions
+sudo chown -R nobody:docker $appdata/process-exporter
+sudo chown -R nobody:docker $appdata/prometheus
+
+# Replace REMOTE_HOST in the following file
+read -n 1 -s -r -p "IMPORTANT: Replace REMOTE_HOST in the file $appdata/prometheus/prometheus.yml"
+nano $appdata/prometheus/prometheus.yml
+</pre>
+<p>
+    See the <a target='_blank'
+        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring'>template README</a> or
+    the related <a target='_blank'
+        href='https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/'>blog post</a> for more
+    info.
+</p>

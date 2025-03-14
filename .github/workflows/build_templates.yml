@@ -45,6 +45,7 @@ jobs:
       - name: Generate ZIP files for appdata folders
         run: |
           mkdir -p appdata_zips  # Temporary folder to store ZIP files
+          appdata_zips=$(pwd)/appdata_zips
           
           find . -type d -name "appdata" | while read dir; do
             parent_dir=$(dirname "$dir")  # Get the parent folder of "appdata"
@@ -53,11 +54,12 @@ jobs:
             # Check if setup.sh exists and copy it to parent_dir if found
             if [ -f "$parent_dir/setup.sh" ]; then
               setup_name=$(basename "$parent_dir").sh  # Format: {folder}.sh
-              cp "$parent_dir/setup.sh" "appdata_zips/$setup_name"
+              echo cp "$parent_dir/setup.sh" "$appdata_zips/$setup_name"
+              cp "$parent_dir/setup.sh" "$appdata_zips/$setup_name"
             fi
             
             echo "Creating ZIP: $zip_name"
-            (cd "$dir" && zip -r "../../appdata_zips/$zip_name" .)  # Zip contents, not the folder itself
+            (cd "$dir" && zip -r "$appdata_zips/$zip_name" .)  # Zip contents, not the folder itself
           done
 
       - name: Upload templates.json

@@ -24,6 +24,7 @@ volumes:
 
 services:
   node-exporter:
+    profiles: [node]
     container_name: node-exporter
     image: quay.io/prometheus/node-exporter:latest
     restart: unless-stopped
@@ -35,6 +36,7 @@ services:
     volumes:
       - /:/host:ro,rslave
   process-exporter:
+    profiles: [process]
     container_name: process-exporter
     image: ncabatoff/process-exporter:master
     restart: unless-stopped
@@ -44,12 +46,14 @@ services:
       - /proc:/host/proc
       - process-exporter:/config
   smartctl-exporter:
+    profiles: [smartctl]
     container_name: smartctl-exporter
     image: prometheuscommunity/smartctl-exporter:latest
     restart: unless-stopped
     command: ['--smartctl.interval=${SMARTCTL_INTERVAL:-30s}']
     privileged: true
   cadvisor:
+    profiles: [cadvisor]
     container_name: cadvisor
     image: gcr.io/cadvisor/cadvisor:latest
     restart: unless-stopped

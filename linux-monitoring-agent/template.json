@@ -11,6 +11,11 @@
     },
     "env": [
         {
+            "name": "COMPOSE_PROFILES",
+            "label": "Determines which performance monitors to run",
+            "default": "node,process,smartctl,cadvisor"
+        },
+        {
             "name": "APPDATA_LOCATION",
             "label": "Parent directory for application data",
             "default": "/srv/appdata/linux-monitoring-agent"

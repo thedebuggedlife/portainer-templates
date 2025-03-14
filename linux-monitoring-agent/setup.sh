@@ -4,7 +4,17 @@ echo -e "\e[1;33mNote: This setup script may require entering your password for 
 # Ask user for appdata folder
 read -p "Application data folder [/srv/appdata/linux-monitoring-agent]: " appdata </dev/tty
 appdata=${appdata:-/srv/appdata/linux-monitoring-agent}
-echo "Using appdata path: $appdata"
+echo -e "Using appdata path: $appdata\n"
+
+# Check if directory exists and ask the user whether to clear it
+if [[ -d "$appdata" ]]; then
+    echo -e "\e[1;33mWarning: The directory $appdata already exists.\e[0m"
+    read -p "Do you want to delete its contents before proceeding? [y/N]: " confirm </dev/tty
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        sudo rm -rf "$appdata"/*
+        echo -e "Contents of $appdata have been deleted.\n"
+    fi
+fi
 
 # Setup the appdata folder (only needed first time)
 sudo mkdir -p $appdata

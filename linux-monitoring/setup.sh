@@ -1,10 +1,10 @@
 #!/bin/bash
-echo -e "\e[33mNote: This setup script may require entering your password for sudo\e[0m"
-echo ""
+echo -e "\e[1;33mNote: This setup script may require entering your password for sudo\n\e[0m"
 
 # Ask user for appdata folder
-read -p "Application data folder [/srv/appdata/linux-monitoring]: " appdata
+read -p "Application data folder [/srv/appdata/linux-monitoring]: " appdata </dev/tty
 appdata=${appdata:-/srv/appdata/linux-monitoring}
+echo "Using appdata path: $appdata"
 
 # Setup the appdata folder (only needed first time)
 sudo mkdir -p $appdata

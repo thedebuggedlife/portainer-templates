@@ -9,7 +9,7 @@ global:
 
 remote_write:
   # Address of the server running the prometheus aggregation service
-  - url: 'http://REMOTE_HOST:9090/api/v1/write'
+  - url: 'http://REMOTE_HOST/api/v1/write'
 
 scrape_configs:
   - job_name: prometheus

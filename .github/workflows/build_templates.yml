@@ -53,9 +53,9 @@ jobs:
             
             # Check if setup.sh exists and copy it to parent_dir if found
             if [ -f "$parent_dir/setup.sh" ]; then
-              setup_name=$(basename "$parent_dir").sh  # Format: {folder}.sh
-              echo cp "$parent_dir/setup.sh" "$appdata_zips/$setup_name"
-              cp "$parent_dir/setup.sh" "$appdata_zips/$setup_name"
+              setup_file=$(basename "$parent_dir").sh  # Format: {folder}.sh
+              echo "Creating setup file: $setup_file"
+              cp "$parent_dir/setup.sh" "$appdata_zips/$setup_file"
             fi
             
             echo "Creating ZIP: $zip_name"

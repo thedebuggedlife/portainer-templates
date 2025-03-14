@@ -3,6 +3,9 @@
 global:
   # How often should Prometheus scrape metrics from each source
   scrape_interval: 15s 
+  external_labels:
+    # The following label is useful to have in Grafana for multi-server dashboards
+    monitor: 'HOSTNAME'
 
 remote_write:
   # Address of the server running the prometheus aggregation service

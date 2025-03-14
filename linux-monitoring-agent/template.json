@@ -13,7 +13,7 @@
         {
             "name": "APPDATA_LOCATION",
             "label": "Parent directory for application data",
-            "default": "/srv/appdata"
+            "default": "/srv/appdata/linux-monitoring-agent"
         },
         {
             "name": "SMARTCTL_INTERVAL",

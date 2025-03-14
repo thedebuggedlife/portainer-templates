@@ -50,6 +50,11 @@ jobs:
             parent_dir=$(dirname "$dir")  # Get the parent folder of "appdata"
             zip_name=$(basename "$parent_dir").zip  # Format: {folder}.zip
             
+            # Check if setup.sh exists and copy it to parent_dir if found
+            if [ -f "$parent_dir/setup.sh" ]; then
+              cp "$parent_dir/setup.sh" "$dir/$(basename "$parent_dir").sh"
+            fi
+            
             echo "Creating ZIP: $zip_name"
             (cd "$dir" && zip -r "../../appdata_zips/$zip_name" .)  # Zip contents, not the folder itself
           done

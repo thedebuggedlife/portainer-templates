@@ -1,13 +1,13 @@
 {
     "type": 3,
-    "title": "Linux Server Monitoring (Agent) [RaspberryPi]",
+    "title": "Linux Server Monitoring (Agent) [arm/arm64]",
     "description": "Collects server metrics and sends them to a central Prometheus aggregation service.",
     "categories": ["monitoring"],
     "platform": "linux",
     "logo": "https://files.thedebugged.life/portainer/monitoring.png",
     "repository": {
         "url": "https://github.com/thedebuggedlife/portainer-templates",
-        "stackfile": "linux-monitoring-agent/docker-compose.yml"
+        "stackfile": "linux-monitoring-agent-arm/docker-compose.yml"
     },
     "env": [
         {

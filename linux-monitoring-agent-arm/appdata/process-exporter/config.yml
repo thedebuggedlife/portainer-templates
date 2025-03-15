@@ -1,0 +1,7 @@
+# File: /srv/appdata/process-exporter/config.yml
+
+# Target all running processes
+process_names:
+  - name: "{{.Comm}}"
+    cmdline:
+    - '.+'

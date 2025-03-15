@@ -1,6 +1,6 @@
 {
     "type": 3,
-    "title": "Linux Server Monitoring (Agent) [arm/arm64]",
+    "title": "Linux Server Monitoring (Agent) [arm|arm64]",
     "description": "Collects server metrics and sends them to a central Prometheus aggregation service.",
     "categories": ["monitoring"],
     "platform": "linux",

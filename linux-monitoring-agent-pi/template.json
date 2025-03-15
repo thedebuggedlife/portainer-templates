@@ -1,6 +1,6 @@
 {
     "type": 3,
-    "title": "Linux Server Monitoring (Agent)",
+    "title": "Linux Server Monitoring (Agent) [RaspberryPi]",
     "description": "Collects server metrics and sends them to a central Prometheus aggregation service.",
     "categories": ["monitoring"],
     "platform": "linux",
@@ -14,11 +14,6 @@
             "name": "APPDATA_LOCATION",
             "label": "Parent directory for application data",
             "default": "/srv/appdata/linux-monitoring-agent"
-        },
-        {
-            "name": "SMARTCTL_INTERVAL",
-            "label": "How often to poll devices for SMART status",
-            "default": "30s"
         }
     ]
 }

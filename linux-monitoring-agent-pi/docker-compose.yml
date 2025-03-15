@@ -37,12 +37,6 @@ services:
     volumes:
       - /proc:/host/proc
       - process-exporter:/config
-  smartctl-exporter:
-    container_name: smartctl-exporter
-    image: prometheuscommunity/smartctl-exporter:latest
-    restart: unless-stopped
-    command: ['--smartctl.interval=${SMARTCTL_INTERVAL:-30s}']
-    privileged: true
   cadvisor:
     container_name: cadvisor
     image: gcr.io/cadvisor/cadvisor:latest

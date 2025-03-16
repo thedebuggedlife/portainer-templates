@@ -60,3 +60,4 @@ services:
       - prometheus:/prometheus
     extra_hosts:
       - node-exporter:host-gateway
+      - host.docker.internal:host-gateway

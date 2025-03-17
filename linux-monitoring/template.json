@@ -27,12 +27,12 @@
         },
         {
             "name": "PROMETHEUS_RETENTION_SIZE",
-            "label": "Largest size to allow the TSDB file to grow before trimming",
+            "label": "Largest size to allow Prometheus data to grow before trimming",
             "default": "150GB"
         },
         {
             "name": "PROMETHEUS_ENABLE_REMOTE_WRITES",
-            "label": "Enable API endpoint accepting remote write requests",
+            "label": "Enable Prometheus API endpoint accepting remote write requests",
             "select": [
               {
                 "text": "No",
@@ -47,12 +47,12 @@
         },
         {
             "name": "PROMETHEUS_SERVER_PORT",
-            "label": "Port for Prometheus web portal and API endpoint",
+            "label": "Mapped port for the Prometheus web portal and API endpoint",
             "default": "9090"
         },
         {
             "name": "GRAFANA_WEB_PORT",
-            "label": "Port on the host (server) that will be mapped to the Grafana website",
+            "label": "Mapped port for the Grafana website on the host",
             "default": "3000"
         }
     ]

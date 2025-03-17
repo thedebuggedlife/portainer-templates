@@ -33,7 +33,22 @@
         {
             "name": "PROMETHEUS_ENABLE_REMOTE_WRITES",
             "label": "Enable API endpoint accepting remote write requests",
-            "default": "false"
+            "select": [
+              {
+                "text": "No",
+                "value": "false",
+                "default": true
+              },
+              {
+                "text": "Yes",
+                "value": "true"
+              }
+            ]
+        },
+        {
+            "name": "PROMETHEUS_SERVER_PORT",
+            "label": "Port for Prometheus web portal and API endpoint",
+            "default": "9090"
         },
         {
             "name": "GRAFANA_WEB_PORT",

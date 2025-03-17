@@ -71,6 +71,8 @@ services:
       - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-90d}
       - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-150GB}
       - --web.enable-remote-write-receiver=${PROMETHEUS_ENABLE_REMOTE_WRITES:-false}
+    ports:
+      - ${PROMETHEUS_SERVER_PORT:-9090}:9090
     volumes:
       - prometheus:/prometheus
     extra_hosts:

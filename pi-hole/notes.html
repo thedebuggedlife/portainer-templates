@@ -1,0 +1,64 @@
+<h4>Application Data</h4>
+<p>The container is pre-configured to store persistent data for Pi-Hole under <code>/srv/appdata/pihole</code>. You may
+    change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume mapping</em>.</p>
+<p>To create the application data folder:</p>
+<pre>
+mkdir -p /srv/appdata
+chown $USER /srv/appdata
+</pre>
+<h4>Timezone</h4>
+<p>It is recommended to set the timezone variable according to your geographic location. See <a
+        href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List" target="_blank">this wiki page</a> for
+    possible values.</p>
+<h4>Network Configuration</h4>
+<h5>⬩ Recommended mode: <code>host</code></h5>
+<p>It is recommended to set the network of this container to <code>host</code>. By default, <strong>pi-hole</strong>
+    will use port 53 to listen for DNS requests, and ports 80/443 for the admin website. If you want to use different
+    ports when running in <code>host</code> network mode, change the respective environment variables below.</p>
+<p><strong>Web Server Port(s) Format</strong></p>
+<p>The value should be a comma-separated list of ports to listen
+    on. It is possible to specify an IP address to
+    bind to. In this case, an IP address and a colon must be prepended to the port number. For example, to bind to
+    the loopback interface on port 80 (IPv4) and to all interfaces port 8080 (IPv4), use <code>127.0.0.1:80,8080</code>.
+    <code>[::]:80</code> can be used to listen to IPv6 connections to port 80. IPv6 addresses of network interfaces can
+    be
+    specified as well, e.g. <code>[::1]:80</code> for the IPv6 loopback interface. [::]:80 will bind to port 80 IPv6
+    only.</p>
+<p>In order to use port 80 for all interfaces, both IPv4 and IPv6, use either the configuration <code>80,[::]:80</code>
+    (create one socket for IPv4 and one for IPv6 only), or <code>+80</code> (create one socket for both, IPv4 and IPv6).
+    The
+    '+' notation to use IPv4 and IPv6 will only work if no network interface is specified. Depending on your
+    operating system version and IPv6 network environment, some configurations might not work as expected, so you
+    have to test to find the configuration most suitable for your needs. In case <code>+80</code> does not work for your
+    environment, you need to use <code>80,[::]:80</code>.<br />
+    If the port is TLS/SSL, a letter 's' (secure) must be appended, for example, <code>80,443s</code> will open port 80
+    and
+    port 443, and connections on port 443 will be encrypted. For non-encrypted ports, it is allowed to append letter
+    'r' (as in redirect). Redirected ports will redirect all their traffic to the first configured SSL port. For
+    example, if webserver.port is <code>80r,443s</code>, then all HTTP traffic coming at port 80 will be redirected to
+    HTTPS
+    port 443.</p>
+<p>When specifying 'o' (optional) behind a port, inability to use this port is not considered an error. For
+    instance, specifying <code>80o,8080o</code> will allow the webserver to listen on either 80, 8080, both or even none
+    of the
+    two ports. This flag may be combined with 'r' and 's' like <code>80or,443os,8080,4443s</code> (80 redirecting to SSL
+    if
+    available, 443 encrypted if available, 8080 mandatory and unencrypted, 4443 mandatory and encrypted).</p>
+<p>If this value is not set (empty string), the web server will not be started and, hence, the API will not be
+    available.
+</p>
+<h5>⬩ Alternative mode: <code>bridge</code></h5>
+<p>It is possible to run <strong>pi-hole</strong> in <code>bridge</code> network mode instead. The downside is that all
+    connected clients may appears to have the IP of the bridge network gateway (e.g. <code>172.17.0.1</code>). This does
+    not affect the ad-blocking functionality of the DNS server, but the admin website dashboards may not be as useful
+    for investigation purposes.</p>
+<p>When running in <code>bridge</code> network mode, make sure to add mappings for the following container ports:</p>
+<pre>
++----------------+--------------------+----------+
+| Container Port | Purpose            | Optional |
++----------------+--------------------+----------+
+| 53/tcp, 53/udp | DNS ports          | no       |
+| 80/tcp         | Admin site (HTTP)  | yes      |
+| 443/tcp        | Admin site (HTTPS) | yes      |
++----------------+--------------------+----------+
+</pre>

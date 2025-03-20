@@ -1,0 +1,43 @@
+{
+    "type": 1,
+    "title": "Tailscale",
+    "description": "An application to block ads and internet trackers, for all devices on your home network.",
+    "categories": ["network", "ad-blocker"],
+    "platform": "linux",
+    "logo": "https://files.thedebugged.life/portainer/pi-hole.png",
+    "image": "pihole/pihole:latest",
+    "name": "pi-hole",
+    "network": "host",
+    "restart_policy": "unless-stopped",
+    "env": [
+        {
+            "name": "TZ",
+            "label": "Timezone",
+            "default": "America/Los_Angeles"
+        },
+        {
+            "name": "FTLCONF_webserver_api_password",
+            "label": "Web Server Password",
+            "description": "Password for the admin web server. Will be set to a random value if not provided.",
+            "default": ""
+        },
+        {
+            "name": "FTLCONF_webserver_port",
+            "label": "Web Server Port(s)",
+            "description": "Ports to be used by the admin web server.",
+            "default": "80o,443os,[::]:80o,[::]:443os"
+        },
+        {
+            "name": "FTLCONF_dns_port",
+            "label": "DNS port",
+            "description": "Ports to be used by the DNS server.",
+            "default": "53"
+        }
+    ],
+    "volumes": [
+        {
+            "container": "/etc/pihole",
+            "bind": "/srv/appdata/pihole"
+        }
+    ]
+}

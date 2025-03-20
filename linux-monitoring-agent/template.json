@@ -9,15 +9,18 @@
         "url": "https://github.com/thedebuggedlife/portainer-templates",
         "stackfile": "linux-monitoring-agent/docker-compose.yml"
     },
+    "name": "linux-monitoring-agent",
     "env": [
         {
             "name": "APPDATA_LOCATION",
-            "label": "Parent directory for application data",
+            "label": "App Data Location",
+            "description": "Directory used by containers in the stack for persistent storage",
             "default": "/srv/appdata/linux-monitoring-agent"
         },
         {
             "name": "SMARTCTL_INTERVAL",
-            "label": "How often to poll devices for SMART status",
+            "label": "SMART Poll Interval",
+            "description": "How often to poll disk devices for SMART status",
             "default": "30s"
         }
     ]

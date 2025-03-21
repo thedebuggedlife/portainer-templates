@@ -1,0 +1,28 @@
+<h4>Application Data</h4>
+<p>The container is pre-configured to store persistent data for Tailscale under <code>/srv/appdata/tailscale</code>. You
+    may
+    change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume mapping</em>.</p>
+<p>To create the application data folder:</p>
+<pre>
+mkdir -p /srv/appdata
+chown $USER /srv/appdata
+</pre>
+<h4>Timezone</h4>
+<p>It is recommended to set the timezone variable according to your geographic location. See <a
+        href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List" target="_blank">this wiki page</a> for
+    possible values.</p>
+<h4>Network Configuration</h4>
+<h5>⬩ Recommended mode: <code>host</code></h5>
+<p>It is recommended to set the network of this container to <code>host</code>. This gives other authorized clients
+    connected to the Tailscale network access to all services running on the host.</p>
+<h5>⬩ Alternative mode: <code>bridge</code></h5>
+<p>It is possible to run <strong>Tailscale</strong> in <code>bridge</code> network mode instead. If you run on this
+    mode, you may need to:</p>
+<p>
+    → Add the environment variable <code>TS_DEST_IP</code> and set it to the IP address of the
+    gateway for the bridge network, e.g. <code>172.17.0.1</code><br />
+    → Add the environment variable <code>TS_HOSTNAME</code> and set it to the machine name of the container
+    host.<br />
+    → Add a mapping for the port specified in the environment variable
+    <code>TS_LOCAL_ADDR_PORT</code> (defaults to 9002) if the health-check or metrics endpoint is enabled
+</p>

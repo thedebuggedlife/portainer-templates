@@ -1,0 +1,69 @@
+{
+    "type": 1,
+    "title": "Tailscale",
+    "description": "A secure, peer-to-peer VPN based on WireGuard that lets you create a private network between your devices using encrypted tunnels and automatic NAT traversal.",
+    "categories": ["network", "vpn"],
+    "platform": "linux",
+    "logo": "https://files.thedebugged.life/portainer/tailscale.png",
+    "image": "tailscale/tailscale:latest",
+    "name": "tailscale",
+    "network": "host",
+    "restart_policy": "unless-stopped",
+    "env": [
+        {
+            "name": "TZ",
+            "label": "Timezone",
+            "default": "America/Los_Angeles"
+        },
+        {
+            "name": "TS_AUTH_ONCE",
+            "label": "Remember Auth Token",
+            "description": "Attempt to log in only if not already logged in. False by default, to forcibly log in every time the container starts.",
+            "select": [
+              {
+                "text": "No",
+                "value": "false"
+              },
+              {
+                "text": "Yes",
+                "value": "true",
+                "default": true
+              }
+            ]
+        },
+        {
+            "name": "TS_AUTHKEY",
+            "label": "Auth Key",
+            "description": "An auth key used to authenticate the container."
+        },
+        {
+            "name": "TS_STATE_DIR",
+            "label": "Tailscaled State Location",
+            "description": "Directory where the state of tailscaled is stored. This needs to persist across container restarts.",
+            "default": "/var/lib/tailscale",
+            "preset": true
+        },
+        {
+            "name": "TS_ENABLE_METRICS",
+            "label": "Enable Metrics Endpoint",
+            "description": "Set to true to enable an unauthenticated /metrics endpoint at the Local Address and Port (TS_LOCAL_ADDR_PORT).",
+            "select": [
+              {
+                "text": "No",
+                "value": "false",
+                "default": true
+              },
+              {
+                "text": "Yes",
+                "value": "true"
+              }
+            ]
+        }
+    ],
+    "volumes": [
+        {
+            "container": "/var/lib/tailscale",
+            "bind": "/srv/appdata/tailscale"
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 {
     "type": 1,
-    "title": "Tailscale",
+    "title": "Pi-Hole",
     "description": "An application to block ads and internet trackers, for all devices on your home network.",
     "categories": ["network", "ad-blocker"],
     "platform": "linux",

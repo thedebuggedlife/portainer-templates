@@ -8,6 +8,8 @@ In this configuration, each monitored server runs a lightweight Prometheus insta
 
 For more info, see the original article at: https://thedebugged.life/scalable-server-monitoring-with-prometheus/
 
+> This stack is **not compatible** with ARM and ARM64 devices. For those, use the alternate [Linux Server Monitoring - Agent Role [arm|arm64]](../linux-monitoring-agent-arm/) stack.
+
 ## Pre-requisite: Set Up Application Data
 
 Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases:

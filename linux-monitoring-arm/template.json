@@ -1,0 +1,61 @@
+{
+    "type": 3,
+    "title": "Linux Server Monitoring [arm|arm64]",
+    "description": "A pre-configured Linux monitoring solution using Docker.",
+    "categories": ["monitoring"],
+    "platform": "linux",
+    "logo": "https://files.thedebugged.life/portainer/monitoring.png",
+    "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "linux-monitoring-arm/docker-compose.yml"
+    },
+    "name": "linux-monitoring",
+    "env": [
+        {
+            "name": "APPDATA_LOCATION",
+            "label": "App Data Location",
+            "description": "Directory used by containers in the stack for persistent storage",
+            "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+            "name": "PROMETHEUS_RETENTION_TIME",
+            "label": "Prometheus Data Retention Time",
+            "description": "How long to store metrics data in Prometheus",
+            "default": "90d"
+        },
+        {
+            "name": "PROMETHEUS_RETENTION_SIZE",
+            "label": "Prometheus Data Retention Size",
+            "description": "Largest size to allow Prometheus data to grow before trimming",
+            "default": "150GB"
+        },
+        {
+            "name": "PROMETHEUS_ENABLE_REMOTE_WRITES",
+            "label": "Enable Remote Writes for Prometheus",
+            "description": "Enable the Prometheus API endpoint that receives remote write requests",
+            "select": [
+              {
+                "text": "No",
+                "value": "false",
+                "default": true
+              },
+              {
+                "text": "Yes",
+                "value": "true"
+              }
+            ]
+        },
+        {
+            "name": "PROMETHEUS_SERVER_PORT",
+            "label": "Prometheus Server Port",
+            "description": "Port where the Prometheus web portal and API endpoint will be accessible",
+            "default": "9090"
+        },
+        {
+            "name": "GRAFANA_WEB_PORT",
+            "label": "Grafana Web Port",
+            "description": "Port where the Grafana website will be accessible",
+            "default": "3000"
+        }
+    ]
+}

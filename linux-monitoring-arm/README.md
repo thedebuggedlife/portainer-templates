@@ -6,14 +6,14 @@ Monitoring your Linux server in real-time is crucial to keep it running smoothly
 
 For more info, see the original article at: https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/
 
-> This stack is **not compatible** with ARM and ARM64 devices. For those, use the alternate [Linux Server Monitoring [arm|arm64]](../linux-monitoring-arm/) stack.
+> This stack is compatible with ARM and ARM64 devices. If your server CPU is i386 or AMD64, use the original [Linux Server Monitoring](../linux-monitoring/) stack.
 
 ## Pre-requisite: Set Up Application Data
 
 Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases:
 
 ```bash
-wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring.sh | bash
+wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-arm.sh | bash
 ```
 
 ## Deployment
@@ -40,8 +40,8 @@ mkdir -p ~/compose/linux-monitoring
 cd ~/compose/linux-monitoring
 
 # Get the deployment files
-wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/linux-monitoring/docker-compose.yml
-wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/linux-monitoring/.env
+wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/linux-monitoring-arm/docker-compose.yml
+wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/linux-monitoring-arm/.env
 ```
 
 2. Make any necessary modifications to the `.env` file.

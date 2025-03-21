@@ -1,0 +1,83 @@
+# Mount points for persistent data
+
+volumes:
+  process-exporter:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${APPDATA_LOCATION:-/srv/appdata}/process-exporter
+  prometheus:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${APPDATA_LOCATION:-/srv/appdata}/prometheus
+  grafana:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${APPDATA_LOCATION:-/srv/appdata}/grafana
+
+# The services that make up our stack
+
+services:
+  node-exporter:
+    container_name: node-exporter
+    image: quay.io/prometheus/node-exporter:latest
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command: ['--path.rootfs=/host']
+    cap_add:
+      - SYS_TIME
+    volumes:
+      - /:/host:ro,rslave
+  process-exporter:
+    container_name: process-exporter
+    image: ncabatoff/process-exporter:master
+    restart: unless-stopped
+    privileged: true
+    command: ['--procfs', /host/proc, '-config.path', /config/config.yml]
+    volumes:
+      - /proc:/host/proc
+      - process-exporter:/config
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: unless-stopped
+    command:
+      - --storage.tsdb.path=/prometheus/data
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-90d}
+      - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-150GB}
+      - --web.enable-remote-write-receiver=${PROMETHEUS_ENABLE_REMOTE_WRITES:-false}
+    ports:
+      - ${PROMETHEUS_SERVER_PORT:-9090}:9090
+    volumes:
+      - prometheus:/prometheus
+    extra_hosts:
+      - node-exporter:host-gateway
+      - host.docker.internal:host-gateway
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: unless-stopped
+    command: ['--config', /var/lib/grafana/grafana.ini]
+    ports:
+      - ${GRAFANA_WEB_PORT:-3000}:3000
+    volumes:
+      - grafana:/var/lib/grafana

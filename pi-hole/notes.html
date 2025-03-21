@@ -1,6 +1,8 @@
 <h4>Application Data</h4>
-<p>The container is pre-configured to store persistent data for Pi-Hole under <code>/srv/appdata/pihole</code>. You may
-    change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume mapping</em>.</p>
+<p>The container is pre-configured to store persistent data for Pi-Hole under <code>/srv/appdata/pihole</code>.
+    Persistent storage is required to remember any configuration change made through the admin website.</p>
+<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume
+        mapping</em>.</p>
 <p>To create the application data folder:</p>
 <pre>
 mkdir -p /srv/appdata
@@ -23,7 +25,8 @@ chown $USER /srv/appdata
     <code>[::]:80</code> can be used to listen to IPv6 connections to port 80. IPv6 addresses of network interfaces can
     be
     specified as well, e.g. <code>[::1]:80</code> for the IPv6 loopback interface. [::]:80 will bind to port 80 IPv6
-    only.</p>
+    only.
+</p>
 <p>In order to use port 80 for all interfaces, both IPv4 and IPv6, use either the configuration <code>80,[::]:80</code>
     (create one socket for IPv4 and one for IPv6 only), or <code>+80</code> (create one socket for both, IPv4 and IPv6).
     The

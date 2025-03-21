@@ -8,35 +8,25 @@ For more info, see the original article at: https://thedebugged.life/real-time-s
 
 ## Pre-requisite: Set Up Application Data
 
-Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases.
-
-> The following assumes your application data is stored under `/srv/appdata/` -- adjust as needed.
+Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases:
 
 ```bash
-# Update if your appdata path is different
-appdata=/srv/appdata
-
-# Download appdata files
-wget https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring.zip
-
-# Unpack into local appdata folder
-unzip -n linux-monitoring.zip -d $appdata/
-
-# Setup proper permissions
-sudo chown -R nobody:docker $appdata/process-exporter
-sudo chown -R nobody:docker $appdata/prometheus
-sudo chown -R nobody:docker $appdata/grafana
+wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring.sh | bash
 ```
 
-## Portainer Deployment
+## Deployment
+
+You can deploy this stack using Portainer (recommended) or Docker Compose.
+
+### Using Portainer
 
 Follow these steps to deploy this project to your server using Portainer:
 
-1. Include the app templates from this repository on your Portainer instance. See [how-to instructions](../README.md#how-to-use-the-templates) for more info.
+1. Configure your Portainer Server to use the App Templates hosted in this repository. See [how-to instructions](../README.md#how-to-use-the-templates) for more info.
 2. Look for the app template called **Linux Server Monitoring** and click on it.
 3. Review and modify **Configuration** values as appropriate and click on **Deploy the stack**.
 
-## Docker Compose Deployment
+### Using Docker Compose
 
 Follow these steps if you want to deploy this project to your server using Docker Compose:
 
@@ -56,6 +46,5 @@ wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/
 3. Deploy the stack! :rocket:
 
 ```bash
-# Deploy the stack (detached)
 docker compose up -d
 ```

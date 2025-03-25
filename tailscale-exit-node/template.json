@@ -70,7 +70,7 @@
     "volumes": [
         {
             "container": "/var/lib/tailscale",
-            "bind": "/srv/appdata/tailscale"
+            "bind": "/srv/appdata/tailscale-exit-node"
         }
     ]
 }

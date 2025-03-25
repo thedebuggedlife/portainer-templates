@@ -12,7 +12,9 @@ For more info, see the original article at: https://thedebugged.life/scalable-se
 
 ## Pre-requisite: Set Up Application Data
 
-Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases:
+Before deploying this stack, we need create and configure permissions for the directories that Grafana and Prometheus will use to store their configuration files and databases.
+
+Run this command from a terminal on the server where the stack will be deployed:
 
 ```bash
 wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-agent.sh | bash

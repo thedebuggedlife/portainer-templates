@@ -1,6 +1,6 @@
 {
     "type": 1,
-    "title": "Tailscale",
+    "title": "Tailscale (Exit Node)",
     "description": "A secure, peer-to-peer VPN based on WireGuard that lets you create a private network between your devices using encrypted tunnels and automatic NAT traversal.",
     "categories": ["network", "vpn"],
     "platform": "linux",
@@ -58,6 +58,13 @@
                 "value": "true"
               }
             ]
+        },
+        {
+            "name": "TS_EXTRA_ARGS",
+            "label": "Extra arguments",
+            "default": "--advertise-exit-node",
+            "description": "Additional flags to pass in to the Tailscale CLI",
+            "preset": true
         }
     ],
     "volumes": [

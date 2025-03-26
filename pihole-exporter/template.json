@@ -1,0 +1,53 @@
+{
+    "type": 1,
+    "title": "Pi-Hole Exporter",
+    "description": "A Prometheus exporter for Pi-hole.",
+    "categories": ["monitoring", "exporter"],
+    "platform": "linux",
+    "logo": "https://files.thedebugged.life/portainer/pi-hole.png",
+    "image": "ekofr/pihole-exporter:latest",
+    "name": "pihole-exporter",
+    "network": "host",
+    "restart_policy": "unless-stopped",
+    "env": [
+        {
+            "name": "PIHOLE_HOSTNAME",
+            "label": "Pi-hole Hostname",
+            "description": "Hostname of the node where Pi-hole is installed.",
+            "default": "127.0.0.1"
+        },
+        {
+            "name": "PIHOLE_PROTOCOL",
+            "label": "Pi-hole Protocol",
+            "description": "The protocol that Pi-hole is listening in, either http or https",
+            "select": [
+              {
+                "text": "http",
+                "value": "http",
+                "default": true
+              },
+              {
+                "text": "https",
+                "value": "https"
+              }
+            ]
+        },
+        {
+            "name": "PIHOLE_PORT",
+            "label": "Pi-hole Port",
+            "description": "The port that Pi-hole is listening in.",
+            "default": "80"
+        },
+        {
+            "name": "PIHOLE_PASSWORD",
+            "label": "Pi-hole Password",
+            "description": "The password for the Pi-hole web admin interface."
+        },
+        {
+            "name": "PORT",
+            "label": "Exporter Port",
+            "description": "The port where the metrics will be available for scrapping.",
+            "default": "9617"
+        }
+    ]
+}

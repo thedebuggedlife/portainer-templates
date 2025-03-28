@@ -49,6 +49,7 @@ services:
     restart: unless-stopped
     command: ['--smartctl.interval=${SMARTCTL_INTERVAL:-30s}']
     privileged: true
+    user: root
   cadvisor:
     container_name: cadvisor
     image: gcr.io/cadvisor/cadvisor:latest

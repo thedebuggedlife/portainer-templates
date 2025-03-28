@@ -37,6 +37,10 @@
             "container": "/etc/machine-id",
             "bind": "/etc/machine-id",
             "readonly": true
+        },
+        {
+            "container": "/var/run/docker.sock",
+            "bind": "/var/run/docker.sock"
         }
     ]
 }

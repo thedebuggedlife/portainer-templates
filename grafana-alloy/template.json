@@ -1,0 +1,42 @@
+{
+    "type": 1,
+    "title": "Grafana Alloy",
+    "description": "Alloy is a flexible, high performance, vendor-neutral distribution of the OpenTelemetry Collector. It’s fully compatible with the most popular open source observability standards such as OpenTelemetry and Prometheus.",
+    "categories": ["monitoring"],
+    "platform": "linux",
+    "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/grafana-alloy/logo.png",
+    "image": "grafana/alloy:latest",
+    "name": "alloy",
+    "restart_policy": "unless-stopped",
+    "command": "run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy",
+    "volumes": [
+        {
+            "container": "/var/lib/alloy",
+            "bind": "/srv/appdata/alloy"
+        },
+        {
+            "container": "/etc/alloy/config.alloy",
+            "bind": "/srv/appdata/alloy/config.alloy"
+        },
+        {
+            "container": "/var/log/journal",
+            "bind": "/var/log/journal",
+            "readonly": true
+        },
+        {
+            "container": "/run/log/journal",
+            "bind": "/run/log/journal",
+            "readonly": true
+        },
+        {
+            "container": "/run/systemd/journal/socket",
+            "bind": "/run/systemd/journal/socket",
+            "readonly": true
+        },
+        {
+            "container": "/etc/machine-id",
+            "bind": "/etc/machine-id",
+            "readonly": true
+        }
+    ]
+}

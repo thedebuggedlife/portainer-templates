@@ -1,0 +1,13 @@
+<h4>Application Data</h4>
+<p>The container is pre-configured to store persistent data for Alloy under <code>/srv/appdata/alloy</code>.</p>
+<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume
+        mapping</em>.</p>
+<p>To create the parent application data folder:</p>
+<pre>
+mkdir -p /srv/appdata/alloy
+chown $USER /srv/appdata/alloy
+touch /srv/appdata/alloy/config.alloy
+</pre>
+<h4>Alloy Configuration</h4>
+<p>You need to configure Alloy according to your monitoring requirements before launching the Alloy service. By default,
+    the configuration file is expected to be in the path <code>/srv/appdata/alloy/config.alloy`</code>.</p>

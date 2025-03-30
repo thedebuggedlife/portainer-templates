@@ -49,12 +49,8 @@ done
 JWT_SECRET=$(LC_ALL=C tr -dc 'A-Za-z0-9!#%&()*+,-./:;<=>?@[\]^_{|}~' </dev/urandom | head -c 32)
 KEY_SEED=$(LC_ALL=C tr -dc 'A-Za-z0-9!#%&()*+,-./:;<=>?@[\]^_{|}~' </dev/urandom | head -c 32)
 
-/bin/echo -n "LLDAP_JWT_SECRET='"
-echo "$JWT_SECRET"
-echo "'"
-/bin/echo -n "LLDAP_KEY_SEED='"
-echo "$KEY_SEED"
-echo "'"
+echo "LLDAP_JWT_SECRET=$JWT_SECRET"
+echo "LLDAP_KEY_SEED=$KEY_SEED"
 
 if [ -n "$SAVE_LOCATION" ]; then
   if [ ! -d "$SAVE_LOCATION" ]; then

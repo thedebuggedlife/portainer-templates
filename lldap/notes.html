@@ -16,7 +16,10 @@ sudo chown $LLDAP_UID /srv/appdata/lldap
 </p>
 <p>To generate these files you can run the following:</p>
 <pre>
-wget -O- https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/lldap/generate-secrets.sh | bash
+wget https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/lldap/generate-secrets.sh -O ./generate_secrets.sh
+# Replace with the PID for LLDAP (the default is 1000)
+LLDAP_UID=1000
+bash ./generate_secrets.sh --save /srv/appdata/lldap --uid $LLDAP_UID
 </pre>
 <h4>Base Domain Name</h4>
 <p>Use the following format: <code>dc=example,dc=com</code> if your domain is <code>example.com</code></p>

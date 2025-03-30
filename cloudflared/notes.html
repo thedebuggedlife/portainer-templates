@@ -1,0 +1,13 @@
+<h4>Connection Token</h4>
+<p>You will need to configure the template with a connection token prior to starting the container. To do this:</p>
+<ol>
+    <li>Open your <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a></li>
+    <li>On the left-hand options, click on <strong>Zero Trust</strong></li>
+    <li>Expand <strong>Networks</strong>, click on <strong>Tunnels</strong></li>
+    <li>Click on <strong>Create a tunnel</strong></li>
+    <li>Select <strong>Cloudflared</strong></li>
+    <li>On <strong>Choose your environment</strong>, select <strong>Docker</strong></li>
+    <li>Copy the command that shows in the section titled <strong>Install and run a connector</strong></li>
+    <li>Paste the command somewhere (e.g. notepad)</li>
+    <li>From the extracted command, copy the token (what appears after <code>--token</code>) and enter it under <strong>Configuration</strong></li>
+</ol>

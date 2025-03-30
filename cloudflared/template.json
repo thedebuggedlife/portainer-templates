@@ -1,0 +1,19 @@
+{
+    "type": 1,
+    "title": "Cloudflare Tunnel",
+    "description": "Cloudflare Tunnel provides you with a secure way to connect your resources to Cloudflare without a publicly routable IP address.",
+    "categories": ["network"],
+    "platform": "linux",
+    "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/cloudflared/logo.png",
+    "image": "cloudflare/cloudflared:latest",
+    "name": "cloudflared",
+    "network": "host",
+    "restart_policy": "unless-stopped",
+    "command": "tunnel --no-autoupdate run --token $CF_TOKEN",
+    "env": [
+        {
+            "name": "CF_TOKEN",
+            "label": "Token"
+        }
+    ]
+}

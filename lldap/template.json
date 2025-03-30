@@ -1,0 +1,47 @@
+{
+    "type": 1,
+    "title": "LLDAP",
+    "description": "LLDAP is a lightweight authentication server that provides an opinionated, simplified LDAP interface for authentication. It integrates with many backends, from KeyCloak to Authelia to Nextcloud and more!",
+    "categories": ["monitoring"],
+    "platform": "linux",
+    "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/lldap/logo.png",
+    "image": "lldap/lldap:stable",
+    "name": "lldap",
+    "restart_policy": "unless-stopped",
+    "ports": [
+        "3890:3890/tcp",
+        "6360:6360/tcp",
+        "17170:17170/tcp"
+    ],
+    "volumes": [
+        {
+            "container": "/data",
+            "bind": "/srv/appdata/lldap"
+        }
+    ],
+    "env": [
+        {
+            "name": "TZ",
+            "label": "Timezone",
+            "default": "America/Los_Angeles"
+        },
+        {
+            "name": "LLDAP_JWT_SECRET_FILE",
+            "label": "JWT Secret File",
+            "default": "/srv/appdata/lldap/jwt.secret"
+        },
+        {
+            "name": "LLDAP_KEY_SEED_FILE",
+            "label": "KEY Seed File",
+            "default": "/srv/appdata/lldap/key.seed"
+        },
+        {
+            "name": "LLDAP_LDAP_BASE_DN",
+            "label": "Base Domain Name"
+        },
+        {
+            "name": "LLDAP_LDAP_USER_PASS",
+            "label": "Admin Web Password"
+        }
+    ]
+}

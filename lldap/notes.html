@@ -1,0 +1,22 @@
+<h4>Application Data</h4>
+<p>The container is pre-configured to store persistent data for LLDAP under <code>/srv/appdata/lldap</code>.</p>
+<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume
+                mapping</em>.</p>
+<p>To create the parent application data folder:</p>
+<pre>
+sudo mkdir -p /srv/appdata/lldap
+# Replace with the PID for LLDAP (the default is 1000)
+LLDAP_UID=1000
+sudo chown $LLDAP_UID /srv/appdata/lldap
+</pre>
+<h4>Secret Files</h4>
+<p>The default configuration points LLDAP to a pair of secret files for JWT secret and KEY seed. This is the recommended
+        way to provide these values to LLDAP instead of environment variables in clear text. The default location of the
+        files is <code>/srv/appdata/lldap/jwt.secret</code> and <code>/srv/appdata/lldap/key.seed</code> respectively.
+</p>
+<p>To generate these files you can run the following:</p>
+<pre>
+wget -O- https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/lldap/generate-secrets.sh | bash
+</pre>
+<h4>Base Domain Name</h4>
+<p>Use the following format: <code>dc=example,dc=com</code> if your domain is <code>example.com</code></p>

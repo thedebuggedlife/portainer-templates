@@ -11,5 +11,4 @@ You can deploy this app template using Portainer:
 1. Configure your Portainer Server to use the App Templates hosted in this repository. See [how-to instructions](../README.md#how-to-use-the-templates) for more info.
 2. Look for the app template called **Cloudflare Tunnel** and click on it.
 3. <ins>Review the notes under **Information**</ins> and modify the **Configuration** values accordingly.
-    - Under **Configuration** you'll need to enter the **Token** extracted as part of the pre-requisite steps above.
 4. Click on **Deploy the stack**.

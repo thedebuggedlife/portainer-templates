@@ -1,0 +1,51 @@
+{
+    "type": 3,
+    "title": "Traefik",
+    "description": "",
+    "categories": ["monitoring"],
+    "platform": "linux",
+    "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/traefik/logo.png",
+    "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "traefik/docker-compose.yml"
+    },
+    "name": "traefik",
+    "env": [
+        {
+            "name": "APPDATA_LOCATION",
+            "label": "App Data Location",
+            "description": "Directory used by containers in the stack for persistent storage",
+            "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+            "name": "TZ",
+            "label": "Timezone",
+            "default": "America/Los_Angeles"
+        },
+        {
+            "name": "HOST_HOSTNAME",
+            "label": "Hostname",
+            "default": "traefik"
+        },
+        {
+            "name": "TRAEFIK_HTTPS",
+            "label": "WebSecure port mapping",
+            "default": "443"
+        },
+        {
+            "name": "TRAEFIK_HTTP",
+            "label": "Web port mapping",
+            "default": "80"
+        },
+        {
+            "name": "TRAEFIK_INTERNAL",
+            "label": "Internal port mapping",
+            "default": "8080"
+        },
+        {
+            "name": "TRAEFIK_PID_LIMIT",
+            "label": "PID limit",
+            "default": "2048"
+        }
+    ]
+}

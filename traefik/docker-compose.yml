@@ -1,0 +1,19 @@
+# The services that make up our stack
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v3.3
+    restart: unless-stopped
+    ports:
+      - "${TRAEFIK_HTTPS:-443}:443"       # https entry point
+      - "${TRAEFIK_HTTP:-80}:80"          # http entry point
+      - "${TRAEFIK_INTERNAL:-8080}:8080"  # traefik entry point
+    pids_limit: ${TRAEFIK_PID_LIMIT:-2048}
+    volumes: 
+    - ${APPDATA_LOCATION:-/srv/appdata/traefik}:/etc/traefik
+    - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ:-America/Los_Angeles}
+      - HOST_HOSTNAME=${HOST_HOSTNAME:-traefik}
+      - HOST_CONTAINERNAME=traefik

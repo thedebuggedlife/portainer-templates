@@ -1,0 +1,10 @@
+<h4>Application Data</h4>
+<p>The container is pre-configured to store persistent data for LLDAP under <code>/srv/appdata/traefik</code>.</p>
+<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume
+                mapping</em>.</p>
+<p>To create the parent application data folder:</p>
+<pre>
+sudo mkdir -p /srv/appdata/traefik
+sudo wget -qO /srv/appdata/traefik/traefik.yml https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/traefik/traefik.yml
+sudo chown -R nobody:docker /srv/appdata/traefik
+</pre>

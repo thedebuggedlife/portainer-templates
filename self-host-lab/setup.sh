@@ -19,10 +19,6 @@ save_env_id() {
 save_env_secret() {
     local secret_filename=$1
     local env_variable=$2
-    if [ -f "$secret_filename" ]; then
-        echo "Secret file '$secret_filename' already exists."
-        return 1
-    fi
     if [ ! -n "${!env_variable}" ]; then
         echo "Missing value for '$env_variable' in '$ENV_FILE'"
         exit 1
@@ -161,28 +157,28 @@ ask_for_variables() {
 }
 
 save_secrets() {
-    local secrets_path="${APPDATA_LOCATION%/}/secrets/"
-    if [ ! -d "$secrets_path" ]; then
-        sudo mkdir -p "$secrets_path"
-        sudo chown $USER:docker "$secrets_path"
+    local 
+    if [ ! -d "$SECRETS_PATH" ]; then
+        sudo mkdir -p "$SECRETS_PATH"
+        sudo chown $USER:docker "$SECRETS_PATH"
     fi
     save_env_id AUTHELIA_OIDC_IMMICH_CLIENT_ID
     save_env_id AUTHELIA_OIDC_GRAFANA_CLIENT_ID
     save_env_id AUTHELIA_OIDC_NEXTCLOUD_CLIENT_ID
-    save_env_secret "${secrets_path}cloudflare_dns_api_token" CF_DNS_API_TOKEN
-    save_env_secret "${secrets_path}smtp_password" SMTP_PASSWORD
-    save_env_secret "${secrets_path}ldap_admin_password" LLDAP_ADMIN_PASSWORD
-    save_env_secret "${secrets_path}portainer_admin_password" PORTAINER_ADMIN_PASSWORD
-    create_secret "${secrets_path}authelia_session_secret"
-    create_secret "${secrets_path}authelia_storage_encryption_key"
-    create_secret "${secrets_path}ldap_jwt_secret"
-    create_secret "${secrets_path}ldap_seed_key"
-    create_secret "${secrets_path}ldap_authelia_password"
-    create_secret "${secrets_path}oidc_hmac_secret"
-    create_password_digest_pair "${secrets_path}oidc_immich"
-    create_password_digest_pair "${secrets_path}oidc_nextcloud"
-    create_password_digest_pair "${secrets_path}oidc_grafana"
-    create_rsa_keypair "${secrets_path}oidc_jwks_key" "${secrets_path}oidc_jwks_public"
+    save_env_secret "${SECRETS_PATH}cloudflare_dns_api_token" CF_DNS_API_TOKEN
+    save_env_secret "${SECRETS_PATH}smtp_password" SMTP_PASSWORD
+    save_env_secret "${SECRETS_PATH}ldap_admin_password" LLDAP_ADMIN_PASSWORD
+    save_env_secret "${SECRETS_PATH}portainer_admin_password" PORTAINER_ADMIN_PASSWORD
+    create_secret "${SECRETS_PATH}authelia_session_secret"
+    create_secret "${SECRETS_PATH}authelia_storage_encryption_key"
+    create_secret "${SECRETS_PATH}ldap_jwt_secret"
+    create_secret "${SECRETS_PATH}ldap_seed_key"
+    create_secret "${SECRETS_PATH}ldap_authelia_password"
+    create_secret "${SECRETS_PATH}oidc_hmac_secret"
+    create_password_digest_pair "${SECRETS_PATH}oidc_immich"
+    create_password_digest_pair "${SECRETS_PATH}oidc_nextcloud"
+    create_password_digest_pair "${SECRETS_PATH}oidc_grafana"
+    create_rsa_keypair "${SECRETS_PATH}oidc_jwks_key" "${SECRETS_PATH}oidc_jwks_public"
     if [ $? -ne 0 ]; then
         return 1
     fi
@@ -193,6 +189,7 @@ create_appdata_location() {
         sudo mkdir -p "$APPDATA_LOCATION"
         sudo chown $USER:docker "$APPDATA_LOCATION"
     fi
+    SECRETS_PATH="${APPDATA_LOCATION%/}/secrets/"
 }
 
 download_appdata() {
@@ -565,7 +562,8 @@ configure_cloudflare_tunnel() {
         return 1
     fi
     local user_input
-    if [ -n "$CF_TUNNEL_ID" ] && [ -n "$CF_TUNNEL_TOKEN" ]; then
+    local token_file=${SECRETS_PATH}cloudflare_tunnel_token
+    if [ -n "$CF_TUNNEL_ID" ] && [ -f "$token_file" ]; then
         echo "Cloudflare tunnel appears to be already configured." >&2
         if [ "$RESUME" = "true" ]; then return 0; fi
         read -p "Do you want to reconfigure the Cloudflare tunnel information? [y/N] " user_input </dev/tty
@@ -583,18 +581,19 @@ configure_cloudflare_tunnel() {
     local tunnel_token
     if [ -z "$tunnel_id" ]; then
         echo "Tunnel '$CF_TUNNEL_NAME' doesn't exist. Creating new tunnel..." >&2
-        local tunnel=$(cloudflared tunnel create --output json $CF_TUNNEL_NAME | jq .)
+        local tunnel=$(cloudflared tunnel create --output json "$CF_TUNNEL_NAME" | jq .)
         if [ $? -ne 0 ]; then
             return 1
         fi
         tunnel_id=$(echo "$tunnel" | jq -r '.id')
-        tunnel_token=$(echo "$tunnel" | jq -r '.token')
-    else
-        tunnel_token=$(cloudflared tunnel token $CF_TUNNEL_NAME)
     fi
-    echo "Saving tunnel ID and Token for '$CF_TUNNEL_NAME' in '$ENV_FILE'" >&2
+    echo "Saving tunnel id '$CF_TUNNEL_NAME' in '$ENV_FILE'" >&2
     save_env CF_TUNNEL_ID "$tunnel_id"
-    save_env CF_TUNNEL_TOKEN "$tunnel_token"
+    echo "Saving tunnel credentials to '$token_file'..." >&2
+    cloudflared tunnel token --cred-file "$token_file" "$CF_TUNNEL_NAME"
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
     cloudflared_logout
 }
 
@@ -796,6 +795,7 @@ print_usage() {
 }
 
 APPDATA_OVERRIDE=
+SECRETS_PATH=
 USE_SMTP2GO=true
 RESUME=false
 ENV_FILE=.env

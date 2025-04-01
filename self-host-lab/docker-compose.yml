@@ -38,14 +38,19 @@ secrets:
     file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/cloudflare_dns_api_token
   portainer_admin_password:
     file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/portainer_admin_password
+  cloudflare_tunnel_token:
+    file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/cloudflare_tunnel_token
 
 services:
   cloudflared:
     container_name: cloudflared
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    network_mode: "service:traefik" # Shares network with Traefik
-    command: ['tunnel', '--no-autoupdate', 'run', '--token', '${CF_TUNNEL_TOKEN}', '--url', 'http://localhost:80']
+    networks: 
+      - proxy
+    command: ['tunnel', '--no-autoupdate', '--cred-file', '/run/secrets/cloudflare_tunnel_token', 'run', '--url', 'http://traefik:80']
+    secrets:
+      - cloudflare_tunnel_token
   traefik:
     container_name: traefik
     image: traefik:v3.3

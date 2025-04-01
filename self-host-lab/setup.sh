@@ -63,7 +63,7 @@ ask_for_env() {
         if [ "$use_default" != "true" ] || [ -z "${!env_variable}" ]; then
             read -p "Enter value for $prompt_text: " env_value </dev/tty
         else
-            if [ "$NO_ASK_VARS" = "true" ]; then
+            if [ "$RESUME" = "true" ]; then
                 env_value=${!env_variable}
             else
                 read -p "Enter value for $prompt_text [${!env_variable}]: " env_value </dev/tty
@@ -95,13 +95,31 @@ create_rsa_keypair() {
     local private_key=$1
     local public_key=$2
     local key_length=${3:-2048}
-    openssl genrsa -out "$private_key" $key_length
-    openssl rsa -in "$private_key" -outform PEM -pubout -out "$public_key"
+    if [ -f "$private_key" ]; then
+        echo "Private key '$private_key' already exists." >&2
+    else
+        echo "Generating private key '$private_key'." >&2
+        openssl genrsa -out "$private_key" $key_length
+        if [ $? -ne 0 ]; then
+            echo "Failed to generate private key '$private_key'" >&2
+            exit 1
+        fi
+    fi
+    if [ -f "$public_key" ]; then
+        echo "Public key '$public_key' already exists." >&2
+    else
+        echo "Generating public key '$public_key'." >&2
+        openssl rsa -in "$private_key" -outform PEM -pubout -out "$public_key"
+        if [ $? -ne 0 ]; then
+            echo "Failed to generate public key '$public_key'" >&2
+            exit 1
+        fi
+    fi
 }
 
 ask_for_variables() {
     if [ -n "$APPDATA_OVERRIDE" ]; then
-        save_env APPDATA_LOCATION $APPDATA_OVERRIDE
+        save_env APPDATA_LOCATION "${APPDATA_OVERRIDE%/}"
     else
         ask_for_env APPDATA_LOCATION "Application Data folder"
     fi
@@ -133,7 +151,7 @@ ask_for_variables() {
 }
 
 save_secrets() {
-    local secrets_path="${APPDATA_LOCATION%/}/secrets"
+    local secrets_path="${APPDATA_LOCATION%/}/secrets/"
     if [ ! -d "$secrets_path" ]; then
         sudo mkdir -p "$secrets_path"
         sudo chown $USER:docker "$secrets_path"
@@ -152,12 +170,52 @@ save_secrets() {
     create_password_digest_pair "${secrets_path}oidc_nextcloud"
     create_password_digest_pair "${secrets_path}oidc_grafana"
     create_rsa_keypair "${secrets_path}oidc_jwks_key" "${secrets_path}oidc_jwks_public"
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
 }
 
 create_appdata_location() {
     if [ ! -d "$APPDATA_LOCATION" ]; then
         sudo mkdir -p "$APPDATA_LOCATION"
         sudo chown $USER:docker "$APPDATA_LOCATION"
+    fi
+}
+
+download_appdata() {
+    local appdata_files=(
+        "${APPDATA_LOCATION%/}/authelia/configuration.yml"
+        "${APPDATA_LOCATION%/}/traefik.yml"
+    )
+    local missing_files=false
+    for path in "${appdata_files[@]}"; do
+        if [ ! -f "$path" ] || [ ! -s "$path" ]; then
+            echo "File '$path' is missing or empty."
+            missing_files=true
+        fi
+    done
+    if [ "$missing_files" != true ]; then
+        return 0
+    fi
+    local user_input
+    read -p "Do you want to download the missing configuration files? [Y/n] " user_input </dev/tty
+    user_input=${user_input:-Y}
+    if [[ "$user_input" =~ ^[Yy]$ ]]; then
+        echo "Downloading appdata..." >&2
+        wget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/self-host-lab.zip \
+            | busybox unzip -n - -d "$APPDATA_LOCATION" 2>&1 \
+            | grep -E "creating:|inflating:" \
+            | awk -F': ' '{print $2}' \
+            | while read -r path; do
+                echo "Changing owner of: '${APPDATA_LOCATION%/}/$path'"
+                chown $USER:docker "${APPDATA_LOCATION%/}/$path"
+              done
+        if [ $? -ne 0 ]; then
+            return 1
+        fi
+    else
+        echo "Installation aborted by the user." >&2
+        return 1
     fi
 }
 
@@ -379,6 +437,14 @@ smtp2go_add_user() {
 }
 
 configure_smtp_domain() {
+    local user_input
+    if [ "$SMTP2GO_DOMAIN_VALIDATED" = "true" ]; then
+        echo "Domain appears to have been already configured for SMPT2GO." >&2
+        if [ "$RESUME" = "true" ]; then return 0; fi
+        read -p "Do you want to validate or re-apply domain configuration? [y/N]" </dev/tty
+        user_input=${user_input:-N}
+        if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
+    fi
     if [ -z "$CF_DOMAIN_NAME" ] || [ -z "$CF_DNS_API_TOKEN" ] || [ -z "$SMTP2GO_API_KEY" ]; then
         echo "Error: Please set CF_DOMAIN_NAME, CF_DNS_API_TOKEN and SMTP2GO_API_KEY values in the '$ENV_FILE' file." >&2
         return 1
@@ -410,9 +476,17 @@ configure_smtp_domain() {
             return 1
         fi
     fi
+    save_env SMTP2GO_DOMAIN_VALIDATED "true"
 }
 
 configure_smtp_user() {
+    if [ -n "$SMTP_PASSWORD" ]; then
+        echo "SMTP2GO user appears to already be configured." >&2
+        if [ "$RESUME" = "true" ]; then return 0; fi
+        read -p "Do you want to validate or re-create the user with SMTP2GO? [y/N]" </dev/tty
+        user_input=${user_input:-N}
+        if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
+    fi
     if [ -z "$SMTP_USERNAME" ] || [ -z "$SMTP2GO_API_KEY" ]; then
         echo "Error: Please set SMTP_USERNAME and SMTP2GO_API_KEY values in the '$ENV_FILE' file." >&2
         return 1
@@ -437,7 +511,7 @@ configure_smtp_user() {
 check_cloudflared() {
     if ! command -v cloudflared &>/dev/null; then
         echo "cloudflared is not installed." >&2
-        read -p "Do you want to install cloudflared? [Y/n] " user_input
+        read -p "Do you want to install cloudflared? [Y/n] " user_input </dev/tty
         user_input=${user_input:-Y}
         if [[ "$user_input" =~ ^[Yy]$ ]]; then
             echo "Installing cloudflared..." >&2
@@ -452,7 +526,7 @@ check_cloudflared() {
     fi
     if [ ! -f ~/.cloudflared/cert.pem ]; then
         echo "Cloudflared is not authenticated." >&2
-        read -s -N 1 -p "Press a key to proceed with authentication..."
+        read -s -N 1 -p "Press a key to proceed with authentication..." </dev/tty
         echo
         cloudflared tunnel login
         if [ $? -ne 0 ]; then
@@ -464,7 +538,7 @@ check_cloudflared() {
 cloudflared_logout() {
     if [ -f ~/.cloudflared/cert.pem ]; then
         echo
-        read -p "Do you want to logout from cloudflared (recommended)? [Y/n] " user_input
+        read -p "Do you want to logout from cloudflared (recommended)? [Y/n] " user_input </dev/tty
         user_input=${user_input:-Y}
         if [[ "$user_input" =~ ^[Yy]$ ]]; then
             rm ~/.cloudflared/cert.pem
@@ -476,6 +550,14 @@ configure_cloudflare_tunnel() {
     if [ -z "$CF_TUNNEL_NAME" ]; then
         echo "Error: Please set c values in the '$ENV_FILE' file." >&2
         return 1
+    fi
+    local user_input
+    if [ -n "$CF_TUNNEL_ID" ] && [ -n "$CF_TUNNEL_TOKEN" ]; then
+        echo "Cloudflare tunnel appears to be already configured." >&2
+        if [ "$RESUME" = "true" ]; then return 0; fi
+        read -p "Do you want to reconfigure the Cloudflare tunnel information? [y/N]" </dev/tty
+        user_input=${user_input:-N}
+        if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
     fi
     check_cloudflared
     if [ $? -ne 0 ]; then
@@ -506,7 +588,7 @@ configure_cloudflare_tunnel() {
 check_tailscale() {
     if ! command -v tailscale >/dev/null 2>&1; then
         echo "tailscale is not installed."
-        read -p "Do you want to install tailscale? [Y/n] " user_input
+        read -p "Do you want to install tailscale? [Y/n] " user_input </dev/tty
         user_input=${user_input:-Y}
         if [[ "$user_input" =~ ^[Yy]$ ]]; then
             echo "Installing tailscale..." >&2
@@ -565,7 +647,7 @@ configure_tailscale() {
 check_docker() {
     if ! command -v docker >/dev/null 2>&1; then
         echo "Docker is not installed."
-        read -p "Do you want to install Docker? [Y/n] " user_input
+        read -p "Do you want to install Docker? [Y/n] " user_input </dev/tty
         user_input=${user_input:-Y}
         if [[ "$user_input" =~ ^[Yy]$ ]]; then
             echo "Installing Docker..." >&2
@@ -603,14 +685,14 @@ print_usage() {
     echo "  --appdata <path>    Application data for deployment. Default: '/srv/appdata'"
     echo "  --env <path>        Environment file to read variables from. Default: './env'"
     echo "  --custom-smtp       Do not use SMTP2GO for sending email, provide custom SMTP configuration."
-    echo "  --no-ask-vars       Do not ask for environment variables already defined in .env file"
+    echo "  --resume            Skip any steps that have been previously completed."
     echo "  -h, --help          Display this help message."
     exit 1
 }
 
 APPDATA_OVERRIDE=
 USE_SMTP2GO=true
-NO_ASK_VARS=false
+RESUME=false
 ENV_FILE=.env
 
 while [ "$#" -gt 0 ]; do
@@ -630,8 +712,8 @@ while [ "$#" -gt 0 ]; do
         shift 1
         continue
         ;;
-    --no-ask-vars)
-        NO_ASK_VARS=true
+    --resume)
+        RESUME=true
         shift 1
         continue
         ;;
@@ -671,6 +753,12 @@ fi
 create_appdata_location
 if [ $? -ne 0 ]; then
     echo "Could not create data folders."
+    exit 1
+fi
+
+download_appdata
+if [ $? -ne 0 ]; then
+    echo "Could not download application data."
     exit 1
 fi
 

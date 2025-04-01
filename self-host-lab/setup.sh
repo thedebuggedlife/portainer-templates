@@ -2,8 +2,18 @@ save_env() {
     local env_variable=$1
     local env_value=$2
     echo "Saving '$env_variable' in '$ENV_FILE'"
-    sed -i.bak -E "s|^($env_variable)=.*|\1=${env_value}|" "$ENV_FILE"
+    sed -i -E "s|^($env_variable)=.*|\1=${env_value}|" "$ENV_FILE"
     eval "$env_variable=$env_value"
+}
+
+save_env_id() {
+    local env_variable=$1
+    local id_length=${2:-20}
+    local env_value="${!env_variable}"
+    if [ -z "$env_value" ]; then
+        env_value=$(tr -cd '[:alnum:]' </dev/urandom | fold -w "${id_length}" | head -n 1 | tr -d '\n')
+    fi
+    save_env "$env_variable" "$env_value"
 }
 
 save_env_secret() {
@@ -156,6 +166,9 @@ save_secrets() {
         sudo mkdir -p "$secrets_path"
         sudo chown $USER:docker "$secrets_path"
     fi
+    save_env_id AUTHELIA_OIDC_IMMICH_CLIENT_ID
+    save_env_id AUTHELIA_OIDC_GRAFANA_CLIENT_ID
+    save_env_id AUTHELIA_OIDC_NEXTCLOUD_CLIENT_ID
     save_env_secret "${secrets_path}cloudflare_dns_api_token" CF_DNS_API_TOKEN
     save_env_secret "${secrets_path}smtp_password" SMTP_PASSWORD
     save_env_secret "${secrets_path}ldap_admin_password" LLDAP_ADMIN_PASSWORD
@@ -185,7 +198,7 @@ create_appdata_location() {
 download_appdata() {
     local appdata_files=(
         "${APPDATA_LOCATION%/}/authelia/configuration.yml"
-        "${APPDATA_LOCATION%/}/traefik.yml"
+        "${APPDATA_LOCATION%/}/traefik/traefik.yml"
     )
     local missing_files=false
     for path in "${appdata_files[@]}"; do
@@ -214,7 +227,7 @@ download_appdata() {
             return 1
         fi
     else
-        echo "Installation aborted by the user." >&2
+        abort_install
         return 1
     fi
 }
@@ -439,9 +452,9 @@ smtp2go_add_user() {
 configure_smtp_domain() {
     local user_input
     if [ "$SMTP2GO_DOMAIN_VALIDATED" = "true" ]; then
-        echo "Domain appears to have been already configured for SMPT2GO." >&2
+        echo "Domain has been previously verified." >&2
         if [ "$RESUME" = "true" ]; then return 0; fi
-        read -p "Do you want to validate or re-apply domain configuration? [y/N]" </dev/tty
+        read -p "Do you want to revalidate the domain configuration? [y/N]" user_input </dev/tty
         user_input=${user_input:-N}
         if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
     fi
@@ -483,7 +496,7 @@ configure_smtp_user() {
     if [ -n "$SMTP_PASSWORD" ]; then
         echo "SMTP2GO user appears to already be configured." >&2
         if [ "$RESUME" = "true" ]; then return 0; fi
-        read -p "Do you want to validate or re-create the user with SMTP2GO? [y/N]" </dev/tty
+        read -p "Do you want to validate or re-create the user with SMTP2GO? [y/N] " user_input </dev/tty
         user_input=${user_input:-N}
         if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
     fi
@@ -520,7 +533,7 @@ check_cloudflared() {
             echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
             sudo apt-get update && sudo apt-get install cloudflared
         else
-            echo "Installation aborted by the user." >&2
+            abort_install
             return 1
         fi
     fi
@@ -555,7 +568,7 @@ configure_cloudflare_tunnel() {
     if [ -n "$CF_TUNNEL_ID" ] && [ -n "$CF_TUNNEL_TOKEN" ]; then
         echo "Cloudflare tunnel appears to be already configured." >&2
         if [ "$RESUME" = "true" ]; then return 0; fi
-        read -p "Do you want to reconfigure the Cloudflare tunnel information? [y/N]" </dev/tty
+        read -p "Do you want to reconfigure the Cloudflare tunnel information? [y/N] " user_input </dev/tty
         user_input=${user_input:-N}
         if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
     fi
@@ -580,8 +593,8 @@ configure_cloudflare_tunnel() {
         tunnel_token=$(cloudflared tunnel token $CF_TUNNEL_NAME)
     fi
     echo "Saving tunnel ID and Token for '$CF_TUNNEL_NAME' in '$ENV_FILE'" >&2
-    sed -i.bak -E "s/^(CF_TUNNEL_ID)=.*/\1=${tunnel_id}/" "$ENV_FILE"
-    sed -i.bak -E "s/^(CF_TUNNEL_TOKEN)=.*/\1=${tunnel_token}/" "$ENV_FILE"
+    save_env CF_TUNNEL_ID "$tunnel_id"
+    save_env CF_TUNNEL_TOKEN "$tunnel_token"
     cloudflared_logout
 }
 
@@ -595,7 +608,7 @@ check_tailscale() {
             curl -fsSL https://tailscale.com/install.sh | sh
             sudo systemctl enable --now tailscaled
         else
-            echo "Installation aborted by the user." >&2
+            abort_install
             return 1
         fi
     fi
@@ -658,7 +671,7 @@ check_docker() {
             sudo usermod -aG docker $USER
             newgrp docker
         else
-            echo "Installation aborted by the user." >&2
+            abort_install
             return 1
         fi
     fi
@@ -678,14 +691,106 @@ configure_docker() {
     fi
 }
 
+prepare_env_file() {
+    local remote_env="https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/self-host-lab/.env"
+    local user_input merge_with
+    if [ -f "$ENV_FILE" ]; then
+        echo "File '$ENV_FILE' already exists."
+        local missing_keys=false
+        while IFS='=' read -r key value; do
+            if [ -n "$key" ]; then
+                if ! grep -q "^${key}=" "$ENV_FILE"; then
+                    echo "Key '$key' not found in '$ENV_FILE'"
+                    missing_keys=true
+                fi
+            fi
+        done < <(wget -qO- "$remote_env" | grep -v '^[[:space:]]*#')
+        if [ "$missing_keys" != true ]; then return 0; fi
+        local key value 
+        read -p "Do you want to merge '$ENV_FILE' with the version that is available online? [Y/n] " user_input </dev/tty
+        user_input=${user_input:-Y}
+        if [[ ! "$user_input" =~ ^[Yy]$ ]]; then 
+            abort_install
+            return 1;
+        fi
+        merge_with="$ENV_FILE.bak"
+        mv "$ENV_FILE" "$merge_with"
+        if [ $? -ne 0 ]; then
+            return 1
+        fi
+    fi
+    wget -qO "$ENV_FILE" "$remote_env"
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    if [ -n "$merge_with" ]; then
+        grep -v '^[[:space:]]*#' "$merge_with" | while IFS='=' read -r key value; do
+            if [ -n "$key" ] && [ -n "$value" ]; then
+                if grep -q "^${key}=" "$ENV_FILE"; then
+                    sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+                    echo "Updated '$key' in '$ENV_FILE'."
+                fi
+            fi
+        done
+    fi
+}
+
+prepare_docker_compose() {
+    local user_input
+    local compose_file="docker-compose.yml"
+    if [ -f "$compose_file" ]; then
+        echo "File '$compose_file' already exists."
+        if [ "$RESUME" = "true" ]; then return 0; fi
+        read -p "Do you want to replace '$compose_file' with the version that is available online? [y/N] " user_input </dev/tty
+        user_input=${user_input:-N}
+        if [[ ! "$user_input" =~ ^[Yy]$ ]]; then return 0; fi
+    fi
+    wget -qO "$compose_file" "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/self-host-lab/docker-compose.yml"
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    echo "File '$compose_file' created."
+}
+
+deploy_project() {
+    local user_input
+    read -p "Project '$COMPOSE_PROJECT' is ready for deployment. Do you want to proceed? [Y/n] " user_input </dev/tty
+    user_input=${user_input:-Y}
+    if [[ ! "$user_input" =~ ^[Yy]$ ]]; then
+        abort_install
+        return 1
+    fi
+    if [ "$COMPOSE_UPDATE" != true ] && docker compose ls | awk 'NR > 1 {print $1}' | grep -qx "$COMPOSE_PROJECT"; then
+        echo "Compose project '$PROJECT' already exists."
+        echo "Run again with the --update flag if you want to update the existing project."
+        return 1
+    fi
+    docker compose -p "$COMPOSE_PROJECT" --env-file "$ENV_FILE" up -d -y --remove-orphans $COMPOSE_OPTIONS
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+}
+
+abort_install() {
+    echo -ne "\n\nSetup aborted by user. To resume, run: bash $0 --resume"
+    if [ -n "$APPDATA_OVERRIDE" ]; then echo -n " --appdata \"$APPDATA_OVERRIDE\""; fi
+    if [ "$ENV_FILE" != ".env" ]; then echo -n " --env \"$ENV_FILE\""; fi
+    if [ "$USE_SMTP2GO" = "false" ]; then echo -n " --custom-smtp"; fi
+    echo -e "\n"
+    exit 1
+}
+
 print_usage() {
     echo "Usage: $0 [--appdata <path>] [--env <file>]"
     echo ""
     echo "Options:"
-    echo "  --appdata <path>    Application data for deployment. Default: '/srv/appdata'"
-    echo "  --env <path>        Environment file to read variables from. Default: './env'"
+    echo "  --appdata <path>    Application data for deployment. [Default: '/srv/appdata']"
+    echo "  --env <path>        Environment file to read variables from. [Default: './env']"
+    echo "  --project <name>    Name to use for the Docker Compose project. [Default: 'self-host']"
     echo "  --custom-smtp       Do not use SMTP2GO for sending email, provide custom SMTP configuration."
     echo "  --resume            Skip any steps that have been previously completed."
+    echo "  --update            Update a previously deployed Docker Compose project."
+    echo "  --dry-run           Execute Docker Compose in dry run mode."
     echo "  -h, --help          Display this help message."
     exit 1
 }
@@ -694,6 +799,9 @@ APPDATA_OVERRIDE=
 USE_SMTP2GO=true
 RESUME=false
 ENV_FILE=.env
+COMPOSE_PROJECT=self-host
+COMPOSE_UPDATE=false
+COMPOSE_OPTIONS=
 
 while [ "$#" -gt 0 ]; do
     case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
@@ -712,6 +820,16 @@ while [ "$#" -gt 0 ]; do
         shift 1
         continue
         ;;
+    --update)
+        COMPOSE_UPDATE=true
+        shift 1
+        continue
+        ;;
+    --dry-run)
+        COMPOSE_OPTIONS="$COMPOSE_OPTIONS --dry-run"
+        shift 1
+        continue
+        ;;
     --resume)
         RESUME=true
         shift 1
@@ -727,6 +845,16 @@ while [ "$#" -gt 0 ]; do
             exit 1
         fi
         ;;
+    --project)
+        if [ -n "$2" ]; then
+            COMPOSE_PROJECT="$2"
+            shift 2
+            continue
+        else
+            echo "Error: --project requires a name."
+            exit 1
+        fi
+        ;;
     -h | --help)
         print_usage
         ;;
@@ -737,16 +865,25 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-if [ ! -f "$ENV_FILE" ]; then
-    echo "Error: File '$ENV_FILE' does not exist."
+trap "abort_install" SIGINT
+
+prepare_env_file
+if [ $? -ne 0 ]; then
+    echo "Failed to prepare '$ENV_FILE'."
     exit 1
 fi
 
 source "$ENV_FILE"
 
+prepare_docker_compose
+if [ $? -ne 0 ]; then
+    echo "Failed to prepare 'docker-compose.yml'."
+    exit 1
+fi
+
 ask_for_variables
 if [ $? -ne 0 ]; then
-    echo "Failed to populate '$ENV_FILE' with configuration values."
+    echo "Failed to configure '$ENV_FILE' with configuration values."
     exit 1
 fi
 
@@ -801,5 +938,11 @@ fi
 save_secrets
 if [ $? -ne 0 ]; then
     echo "Failed to save secret files."
+    exit 1
+fi
+
+deploy_project
+if [ $? -ne 0 ]; then
+    echo "Failed to deploy project with docker compose."
     exit 1
 fi

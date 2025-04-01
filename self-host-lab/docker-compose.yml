@@ -1,7 +1,7 @@
 networks:
   proxy:
-    external:
-      name: ${DOCKER_NETWORK}
+    name: ${DOCKER_NETWORK:-proxy}
+    external: true
 
 secrets:
   authelia_session_secret:

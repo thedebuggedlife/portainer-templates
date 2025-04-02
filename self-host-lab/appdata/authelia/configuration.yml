@@ -26,7 +26,7 @@ telemetry:
     address: 'tcp://:9959/metrics'
 
 totp:
-  # issuer: vargas.casa ==> Use: $AUTHELIA_TOTP_ISSUER
+  # issuer: ==> Use: $AUTHELIA_TOTP_ISSUER
   period: 30
   skew: 1
 
@@ -37,8 +37,8 @@ authentication_backend:
   ldap:
       implementation: lldap
       address: ldap://lldap:3890
-      base_dn: dc=vargas,dc=casa
-      user: uid=authelia,ou=people,dc=vargas,dc=casa
+      base_dn: {{ env "CF_DOMAIN_CN" }}
+      user: {{ expandenv "uid=authelia,ou=people,$CF_DOMAIN_CN" }}
       # password: Use ==> $AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE
       # The following allows sign in with EITHER username or email:
       users_filter: "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))"
@@ -48,11 +48,11 @@ access_control:
   rules:
     ## bypass rule
     - domain: 
-        - {{ "authelia.${CF_DOMAIN_NAME}" | expandenv }}
+        - {{ expandenv "authelia.$CF_DOMAIN_NAME" }}
       policy: bypass
     ## catch-all
     - domain:
-        - {{ "*.${CF_DOMAIN_NAME}" | expandenv }}
+        - {{ expandenv "\"*.$CF_DOMAIN_NAME\"" }}
       subject: 
         - "group:server_admin"
       policy: one_factor
@@ -66,7 +66,7 @@ session:
   remember_me: 2M
   cookies:
     - domain: {{ env "CF_DOMAIN_NAME" }}
-      authelia_url: {{ "https://authelia.${CF_DOMAIN_NAME}" | expandenv }}
+      authelia_url: {{ expandenv "https://authelia.$CF_DOMAIN_NAME" }}
 
 regulation:
   max_retries: 3
@@ -111,20 +111,20 @@ identity_providers:
           - policy: 'one_factor'
             subject: 'group:nc_user'
     clients:
-      - client_id: {{ env "AUTHELIA_OIDC_IMMICH_CLIENT_ID" }}
+      - client_id: {{ env "OIDC_IMMICH_CLIENT_ID" }}
         client_name: 'immich'
         client_secret: {{ secret "/run/secrets/oidc_immich_digest" }}
         public: false
         authorization_policy: 'immich_user' # immich does not have its own RBAC
         redirect_uris:
-          - {{ "https://immich.${CF_DOMAIN_NAME}/auth/login" | expandenv }}
-          - {{ "https://immich.${CF_DOMAIN_NAME}/user-settings" | expandenv }}
+          - {{ expandenv "https://immich.$CF_DOMAIN_NAME/auth/login" }}
+          - {{ expandenv "https://immich.${CF_DOMAIN_NAME}/user-settings" }}
           - 'app.immich:///oauth-callback'
         scopes:
           - 'openid'
           - 'profile'
           - 'email'
-      - client_id: {{ env "AUTHELIA_OIDC_NEXTCLOUD_CLIENT_ID" }}
+      - client_id: {{ env "OIDC_NEXTCLOUD_CLIENT_ID" }}
         client_name: 'nextcloud'
         client_secret: {{ secret "/run/secrets/oidc_nextcloud_digest" }}
         public: false
@@ -132,7 +132,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - {{ "https://nextcloud.${CF_DOMAIN_NAME}/apps/user_oidc/code" | expandenv }}
+          - {{ expandenv "https://nextcloud.${CF_DOMAIN_NAME}/apps/user_oidc/code" }}
         scopes:
           - 'openid'
           - 'profile'
@@ -140,7 +140,7 @@ identity_providers:
           - 'groups'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
-      - client_id: {{ env "AUTHELIA_OIDC_GRAFANA_CLIENT_ID" }}
+      - client_id: {{ env "OIDC_GRAFANA_CLIENT_ID" }}
         client_name: 'grafana'
         client_secret: {{ secret "/run/secrets/oidc_grafana_digest" }}  # The digest of 'insecure_secret'.
         public: false
@@ -148,7 +148,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - {{ 'https://grafana.${CF_DOMAIN_NAME}/login/generic_oauth' | expandenv }}
+          - {{ expandenv "https://grafana.${CF_DOMAIN_NAME}/login/generic_oauth" }}
         scopes:
           - 'openid'
           - 'profile'

@@ -162,9 +162,9 @@ save_secrets() {
         sudo mkdir -p "$SECRETS_PATH"
         sudo chown $USER:docker "$SECRETS_PATH"
     fi
-    save_env_id AUTHELIA_OIDC_IMMICH_CLIENT_ID
-    save_env_id AUTHELIA_OIDC_GRAFANA_CLIENT_ID
-    save_env_id AUTHELIA_OIDC_NEXTCLOUD_CLIENT_ID
+    save_env_id OIDC_IMMICH_CLIENT_ID
+    save_env_id OIDC_GRAFANA_CLIENT_ID
+    save_env_id OIDC_NEXTCLOUD_CLIENT_ID
     save_env_secret "${SECRETS_PATH}cloudflare_dns_api_token" CF_DNS_API_TOKEN
     save_env_secret "${SECRETS_PATH}smtp_password" SMTP_PASSWORD
     save_env_secret "${SECRETS_PATH}ldap_admin_password" LLDAP_ADMIN_PASSWORD
@@ -771,6 +771,30 @@ deploy_project() {
     fi
 }
 
+bootstrap_lldap() {
+    # Paste the generated secret for Authelia's LLDAP password into the bootstrap user file
+    local authelia_password=$(<"${SECRETS_PATH}ldap_authelia_password")
+    local authelia_file="${APPDATA_LOCATION%/}/lldap/bootstrap/user-configs/authelia.json"
+    local authelia_json=$(jq --arg password "$authelia_password" '.password = $password' "$authelia_file")
+    echo "$authelia_json" > "$authelia_file"
+    # Run LLDAP's built-in bootstrap script to create/update users and groups
+    echo "Bootstrapping LLDAP with pre-configured users and groups..."
+    docker exec \
+        -e LLDAP_ADMIN_PASSWORD_FILE=/run/secrets/ldap_admin_password \
+        -e USER_CONFIGS_DIR=/data/bootstrap/user-configs \
+        -e GROUP_CONFIGS_DIR=/data/bootstrap/group-configs \
+        -it lldap ./bootstrap.sh
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    # Restart Authelia so it can connect to LLDAP with the updated user information
+    echo "Restarting Authelia container..."
+    docker restart authelia
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+}
+
 abort_install() {
     echo -ne "\n\nSetup aborted by user. To resume, run: bash $0 --resume"
     if [ -n "$APPDATA_OVERRIDE" ]; then echo -n " --appdata \"$APPDATA_OVERRIDE\""; fi
@@ -945,5 +969,11 @@ fi
 deploy_project
 if [ $? -ne 0 ]; then
     echo "Failed to deploy project with docker compose."
+    exit 1
+fi
+
+bootstrap_lldap
+if [ $? -ne 0 ]; then
+    echo "Failed to bootstrap LLDAP."
     exit 1
 fi

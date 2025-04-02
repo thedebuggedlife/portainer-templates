@@ -1,0 +1,635 @@
+{
+  "version": "3",
+  "templates": [
+    {
+      "type": 3,
+      "title": "Traefik",
+      "description": "",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/traefik/logo.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "traefik/docker-compose.yml"
+      },
+      "name": "traefik",
+      "env": [
+        {
+          "name": "APPDATA_LOCATION",
+          "label": "App Data Location",
+          "description": "Directory used by containers in the stack for persistent storage",
+          "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "America/Los_Angeles"
+        },
+        {
+          "name": "HOST_HOSTNAME",
+          "label": "Hostname",
+          "default": "traefik"
+        },
+        {
+          "name": "TRAEFIK_HTTPS",
+          "label": "WebSecure port mapping",
+          "default": "443"
+        },
+        {
+          "name": "TRAEFIK_HTTP",
+          "label": "Web port mapping",
+          "default": "80"
+        },
+        {
+          "name": "TRAEFIK_INTERNAL",
+          "label": "Internal port mapping",
+          "default": "8080"
+        },
+        {
+          "name": "TRAEFIK_PID_LIMIT",
+          "label": "PID limit",
+          "default": "2048"
+        }
+      ],
+      "id": 1,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for LLDAP under <code>/srv/appdata/traefik</code>.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n                mapping</em>.</p>\n<p>To create the parent application data folder:</p>\n<pre>\nsudo mkdir -p /srv/appdata/traefik\nsudo wget -qO /srv/appdata/traefik/traefik.yml https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/traefik/traefik.yml\nsudo chown -R nobody:docker /srv/appdata/traefik\n</pre>"
+    },
+    {
+      "type": 1,
+      "title": "Pi-Hole",
+      "description": "An application to block ads and internet trackers, for all devices on your home network.",
+      "categories": [
+        "network",
+        "ad-blocker"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/pi-hole.png",
+      "image": "pihole/pihole:latest",
+      "name": "pi-hole",
+      "network": "host",
+      "restart_policy": "unless-stopped",
+      "env": [
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "America/Los_Angeles"
+        },
+        {
+          "name": "FTLCONF_webserver_api_password",
+          "label": "Web Server Password",
+          "description": "Password for the admin web server. Will be set to a random value if not provided.",
+          "default": ""
+        },
+        {
+          "name": "FTLCONF_webserver_port",
+          "label": "Web Server Port(s)",
+          "description": "Ports to be used by the admin web server.",
+          "default": "80o,443os,[::]:80o,[::]:443os"
+        },
+        {
+          "name": "FTLCONF_dns_port",
+          "label": "DNS port",
+          "description": "Ports to be used by the DNS server.",
+          "default": "53"
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/etc/pihole",
+          "bind": "/srv/appdata/pihole"
+        }
+      ],
+      "id": 2,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for Pi-Hole under <code>/srv/appdata/pihole</code>.\n    Persistent storage is required to remember any configuration change made through the admin website.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n        mapping</em>.</p>\n<p>To create the application data folder:</p>\n<pre>\nmkdir -p /srv/appdata\nchown $USER /srv/appdata\n</pre>\n<h4>Timezone</h4>\n<p>It is recommended to set the timezone variable according to your geographic location. See <a\n        href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\" target=\"_blank\">this wiki page</a> for\n    possible values.</p>\n<h4>Network Configuration</h4>\n<h5>⬩ Recommended mode: <code>host</code></h5>\n<p>It is recommended to set the network of this container to <code>host</code>. By default, <strong>pi-hole</strong>\n    will use port 53 to listen for DNS requests, and ports 80/443 for the admin website. If you want to use different\n    ports when running in <code>host</code> network mode, change the respective environment variables below.</p>\n<p><strong>Web Server Port(s) Format</strong></p>\n<p>The value should be a comma-separated list of ports to listen\n    on. It is possible to specify an IP address to\n    bind to. In this case, an IP address and a colon must be prepended to the port number. For example, to bind to\n    the loopback interface on port 80 (IPv4) and to all interfaces port 8080 (IPv4), use <code>127.0.0.1:80,8080</code>.\n    <code>[::]:80</code> can be used to listen to IPv6 connections to port 80. IPv6 addresses of network interfaces can\n    be\n    specified as well, e.g. <code>[::1]:80</code> for the IPv6 loopback interface. [::]:80 will bind to port 80 IPv6\n    only.\n</p>\n<p>In order to use port 80 for all interfaces, both IPv4 and IPv6, use either the configuration <code>80,[::]:80</code>\n    (create one socket for IPv4 and one for IPv6 only), or <code>+80</code> (create one socket for both, IPv4 and IPv6).\n    The\n    '+' notation to use IPv4 and IPv6 will only work if no network interface is specified. Depending on your\n    operating system version and IPv6 network environment, some configurations might not work as expected, so you\n    have to test to find the configuration most suitable for your needs. In case <code>+80</code> does not work for your\n    environment, you need to use <code>80,[::]:80</code>.<br />\n    If the port is TLS/SSL, a letter 's' (secure) must be appended, for example, <code>80,443s</code> will open port 80\n    and\n    port 443, and connections on port 443 will be encrypted. For non-encrypted ports, it is allowed to append letter\n    'r' (as in redirect). Redirected ports will redirect all their traffic to the first configured SSL port. For\n    example, if webserver.port is <code>80r,443s</code>, then all HTTP traffic coming at port 80 will be redirected to\n    HTTPS\n    port 443.</p>\n<p>When specifying 'o' (optional) behind a port, inability to use this port is not considered an error. For\n    instance, specifying <code>80o,8080o</code> will allow the webserver to listen on either 80, 8080, both or even none\n    of the\n    two ports. This flag may be combined with 'r' and 's' like <code>80or,443os,8080,4443s</code> (80 redirecting to SSL\n    if\n    available, 443 encrypted if available, 8080 mandatory and unencrypted, 4443 mandatory and encrypted).</p>\n<p>If this value is not set (empty string), the web server will not be started and, hence, the API will not be\n    available.\n</p>\n<h5>⬩ Alternative mode: <code>bridge</code></h5>\n<p>It is possible to run <strong>pi-hole</strong> in <code>bridge</code> network mode instead. The downside is that all\n    connected clients may appears to have the IP of the bridge network gateway (e.g. <code>172.17.0.1</code>). This does\n    not affect the ad-blocking functionality of the DNS server, but the admin website dashboards may not be as useful\n    for investigation purposes.</p>\n<p>When running in <code>bridge</code> network mode, make sure to add mappings for the following container ports:</p>\n<pre>\n+----------------+--------------------+----------+\n| Container Port | Purpose            | Optional |\n+----------------+--------------------+----------+\n| 53/tcp, 53/udp | DNS ports          | no       |\n| 80/tcp         | Admin site (HTTP)  | yes      |\n| 443/tcp        | Admin site (HTTPS) | yes      |\n+----------------+--------------------+----------+\n</pre>"
+    },
+    {
+      "type": 1,
+      "title": "Grafana Alloy",
+      "description": "Alloy is a flexible, high performance, vendor-neutral distribution of the OpenTelemetry Collector. It’s fully compatible with the most popular open source observability standards such as OpenTelemetry and Prometheus.",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/grafana-alloy/logo.png",
+      "image": "grafana/alloy:latest",
+      "name": "alloy",
+      "restart_policy": "unless-stopped",
+      "command": "run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy",
+      "volumes": [
+        {
+          "container": "/var/lib/alloy",
+          "bind": "/srv/appdata/alloy"
+        },
+        {
+          "container": "/etc/alloy/config.alloy",
+          "bind": "/srv/appdata/alloy/config.alloy"
+        },
+        {
+          "container": "/var/log/journal",
+          "bind": "/var/log/journal",
+          "readonly": true
+        },
+        {
+          "container": "/run/log/journal",
+          "bind": "/run/log/journal",
+          "readonly": true
+        },
+        {
+          "container": "/run/systemd/journal/socket",
+          "bind": "/run/systemd/journal/socket",
+          "readonly": true
+        },
+        {
+          "container": "/etc/machine-id",
+          "bind": "/etc/machine-id",
+          "readonly": true
+        },
+        {
+          "container": "/var/run/docker.sock",
+          "bind": "/var/run/docker.sock"
+        }
+      ],
+      "id": 3,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for Alloy under <code>/srv/appdata/alloy</code>.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n        mapping</em>.</p>\n<p>To create the parent application data folder:</p>\n<pre>\nsudo mkdir -p /srv/appdata/alloy\nsudo chown $USER /srv/appdata/alloy\ntouch /srv/appdata/alloy/config.alloy\n</pre>\n<h4>Alloy Configuration</h4>\n<p>You need to configure Alloy according to your monitoring requirements before launching the Alloy service. By default,\n    the configuration file is expected to be in the path <code>/srv/appdata/alloy/config.alloy`</code>.</p>"
+    },
+    {
+      "type": 1,
+      "title": "Tailscale (Exit Node)",
+      "description": "A secure, peer-to-peer VPN based on WireGuard that lets you create a private network between your devices using encrypted tunnels and automatic NAT traversal.",
+      "categories": [
+        "network",
+        "vpn"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/tailscale.png",
+      "image": "tailscale/tailscale:latest",
+      "name": "tailscale",
+      "network": "host",
+      "restart_policy": "unless-stopped",
+      "env": [
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "America/Los_Angeles"
+        },
+        {
+          "name": "TS_AUTH_ONCE",
+          "label": "Remember Auth Token",
+          "description": "Attempt to log in only if not already logged in. False by default, to forcibly log in every time the container starts.",
+          "select": [
+            {
+              "text": "No",
+              "value": "false"
+            },
+            {
+              "text": "Yes",
+              "value": "true",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "TS_AUTHKEY",
+          "label": "Authorization Key",
+          "description": "Used to authenticate the container on first run."
+        },
+        {
+          "name": "TS_STATE_DIR",
+          "label": "Tailscaled State Location",
+          "description": "Directory where the state of tailscaled is stored. This needs to persist across container restarts.",
+          "default": "/var/lib/tailscale",
+          "preset": true
+        },
+        {
+          "name": "TS_ENABLE_METRICS",
+          "label": "Enable Metrics Endpoint",
+          "description": "Set to true to enable an unauthenticated /metrics endpoint at the Local Address and Port (TS_LOCAL_ADDR_PORT).",
+          "select": [
+            {
+              "text": "No",
+              "value": "false",
+              "default": true
+            },
+            {
+              "text": "Yes",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "name": "TS_EXTRA_ARGS",
+          "label": "Extra arguments",
+          "default": "--advertise-exit-node",
+          "description": "Additional flags to pass in to the Tailscale CLI",
+          "preset": true
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/var/lib/tailscale",
+          "bind": "/srv/appdata/tailscale-exit-node"
+        }
+      ],
+      "id": 4,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for Tailscale under <code>/srv/appdata/tailscale</code>.\n    Persistent storage is required to remember the authorization token across container restart and upgrade.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n        mapping</em>.</p>\n<p>To create the application data folder:</p>\n<pre>\nsudo mkdir -p /srv/appdata\nsudo chown $USER /srv/appdata\n</pre>\n<h4>Authorization Key</h4>\n<p>The container requires an <strong>authorization key</strong> to successfully connect to your Tailscale network. You\n    can obtain one from your Tailscale admin console, then look under <strong>Settings</strong>.</p>\n<h4>Timezone</h4>\n<p>It is recommended to set the timezone variable according to your geographic location. See <a\n        href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\" target=\"_blank\">this wiki page</a> for\n    possible values.</p>\n<h4>Network Configuration</h4>\n<h5>⬩ Recommended mode: <code>host</code></h5>\n<p>It is recommended to set the network of this container to <code>host</code>. This gives other authorized clients\n    connected to the Tailscale network access to all services running on the host.</p>\n<h5>⬩ Alternative mode: <code>bridge</code></h5>\n<p>It is possible to run <strong>Tailscale</strong> in <code>bridge</code> network mode instead. If you run on this\n    mode, you may need to:</p>\n<p>\n    → Add the environment variable <code>TS_DEST_IP</code> and set it to the IP address of the\n    gateway for the bridge network, e.g. <code>172.17.0.1</code><br />\n    → Add the environment variable <code>TS_HOSTNAME</code> and set it to the machine name of the container\n    host.<br />\n    → Add a mapping for the port specified in the environment variable\n    <code>TS_LOCAL_ADDR_PORT</code> (defaults to 9002) if the health-check or metrics endpoint is enabled\n</p>"
+    },
+    {
+      "type": 3,
+      "title": "Cloudflare Tunnel",
+      "description": "Cloudflare Tunnel provides you with a secure way to connect your resources to Cloudflare without a publicly routable IP address.",
+      "categories": [
+        "network"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/cloudflared/logo.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "cloudflared/docker-compose.yml"
+      },
+      "name": "cloudflared",
+      "env": [
+        {
+          "name": "CF_TOKEN",
+          "label": "Token"
+        }
+      ],
+      "id": 5,
+      "note": "<h4>Connection Token</h4>\n<p>You will need to configure the template with a connection token prior to starting the container. To do this:</p>\n<ol>\n    <li>Open your <a href=\"https://dash.cloudflare.com\" target=\"_blank\">Cloudflare Dashboard</a></li>\n    <li>On the left-hand options, click on <strong>Zero Trust</strong></li>\n    <li>Expand <strong>Networks</strong>, click on <strong>Tunnels</strong></li>\n    <li>Click on <strong>Create a tunnel</strong></li>\n    <li>Select <strong>Cloudflared</strong></li>\n    <li>On <strong>Choose your environment</strong>, select <strong>Docker</strong></li>\n    <li>Copy the command that shows in the section titled <strong>Install and run a connector</strong></li>\n    <li>Paste the command under <strong>Token</strong>, then delete <ins>everything but the token</ins> (i.e. text up to, and including, <code>--token</code>).</li>\n</ol>"
+    },
+    {
+      "type": 3,
+      "title": "Linux Server Monitoring [arm|arm64]",
+      "description": "A pre-configured Linux monitoring solution using Docker.",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/monitoring.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "linux-monitoring-arm/docker-compose.yml"
+      },
+      "name": "linux-monitoring",
+      "env": [
+        {
+          "name": "APPDATA_LOCATION",
+          "label": "App Data Location",
+          "description": "Directory used by containers in the stack for persistent storage",
+          "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+          "name": "PROMETHEUS_RETENTION_TIME",
+          "label": "Prometheus Data Retention Time",
+          "description": "How long to store metrics data in Prometheus",
+          "default": "90d"
+        },
+        {
+          "name": "PROMETHEUS_RETENTION_SIZE",
+          "label": "Prometheus Data Retention Size",
+          "description": "Largest size to allow Prometheus data to grow before trimming",
+          "default": "150GB"
+        },
+        {
+          "name": "PROMETHEUS_ENABLE_REMOTE_WRITES",
+          "label": "Enable Remote Writes for Prometheus",
+          "description": "Enable the Prometheus API endpoint that receives remote write requests",
+          "select": [
+            {
+              "text": "No",
+              "value": "false",
+              "default": true
+            },
+            {
+              "text": "Yes",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "name": "PROMETHEUS_SERVER_PORT",
+          "label": "Prometheus Server Port",
+          "description": "Port where the Prometheus web portal and API endpoint will be accessible",
+          "default": "9090"
+        },
+        {
+          "name": "GRAFANA_WEB_PORT",
+          "label": "Grafana Web Port",
+          "description": "Port where the Grafana website will be accessible",
+          "default": "3000"
+        }
+      ],
+      "id": 6,
+      "note": "<p>\n    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack by running the following on the server being deployed:\n</p>\n<pre>\nwget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring.sh | bash\n</pre>\n<p>\n    See the <a target='_blank'\n        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring'>template README</a> or\n    the related <a target='_blank'\n        href='https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/'>blog post</a> for more\n    info.\n</p>"
+    },
+    {
+      "type": 1,
+      "title": "Pi-Hole Exporter",
+      "description": "A Prometheus exporter for Pi-hole.",
+      "categories": [
+        "monitoring",
+        "exporter"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/pi-hole.png",
+      "image": "ekofr/pihole-exporter:latest",
+      "name": "pihole-exporter",
+      "network": "host",
+      "restart_policy": "unless-stopped",
+      "env": [
+        {
+          "name": "PIHOLE_HOSTNAME",
+          "label": "Pi-hole Hostname",
+          "description": "Hostname of the node where Pi-hole is installed.",
+          "default": "127.0.0.1"
+        },
+        {
+          "name": "PIHOLE_PROTOCOL",
+          "label": "Pi-hole Protocol",
+          "description": "The protocol that Pi-hole is listening in, either http or https",
+          "select": [
+            {
+              "text": "http",
+              "value": "http",
+              "default": true
+            },
+            {
+              "text": "https",
+              "value": "https"
+            }
+          ]
+        },
+        {
+          "name": "PIHOLE_PORT",
+          "label": "Pi-hole Port",
+          "description": "The port that Pi-hole is listening in.",
+          "default": "80"
+        },
+        {
+          "name": "PIHOLE_PASSWORD",
+          "label": "Pi-hole Password",
+          "description": "The password for the Pi-hole web admin interface."
+        },
+        {
+          "name": "PORT",
+          "label": "Exporter Port",
+          "description": "The port where the metrics will be available for scrapping.",
+          "default": "9617"
+        }
+      ],
+      "id": 7,
+      "note": "<h4>Network Configuration</h4>\n<p>If your pi-hole container is running in <strong>host</strong> network mode, it is recommended to also set this\n    container to run in <strong>host</strong> network mode. You will need to make sure that the port used to expose the\n    metrics (9617 by default) is not already in use by the host.</p>"
+    },
+    {
+      "type": 1,
+      "title": "LLDAP",
+      "description": "LLDAP is a lightweight authentication server that provides an opinionated, simplified LDAP interface for authentication. It integrates with many backends, from KeyCloak to Authelia to Nextcloud and more!",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/thedebuggedlife/portainer-templates/refs/heads/main/lldap/logo.png",
+      "image": "lldap/lldap:stable",
+      "name": "lldap",
+      "restart_policy": "unless-stopped",
+      "ports": [
+        "3890:3890/tcp",
+        "6360:6360/tcp",
+        "17170:17170/tcp"
+      ],
+      "volumes": [
+        {
+          "container": "/data",
+          "bind": "/srv/appdata/lldap"
+        }
+      ],
+      "env": [
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "America/Los_Angeles"
+        },
+        {
+          "name": "LLDAP_JWT_SECRET",
+          "label": "JWT Secret"
+        },
+        {
+          "name": "LLDAP_KEY_SEED",
+          "label": "KEY Seed"
+        },
+        {
+          "name": "LLDAP_LDAP_BASE_DN",
+          "label": "Base Domain Name"
+        },
+        {
+          "name": "LLDAP_LDAP_USER_PASS",
+          "label": "Admin Web Password"
+        }
+      ],
+      "id": 8,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for LLDAP under <code>/srv/appdata/lldap</code>.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n                mapping</em>.</p>\n<p>To create the parent application data folder:</p>\n<pre>\nsudo mkdir -p /srv/appdata\nsudo chown $USER /srv/appdata\n</pre>\n<h4>Generate Secrets</h4>\n<p>LLDAP requires pair of secrets for JWT and KEY seed. These can be generated by running the following:\n<pre>\nwget -qO- https://raw.githubusercontent.com/lldap/lldap/refs/heads/main/generate_secrets.sh | bash\n</pre>\n<p>Then copy and paste the secrets from the output to the respective variables in the template.</p>\n<h4>Domain Name Format</h4>\n<p>Use the following format for the <strong>Base Domain Name</strong> template variable: <code>dc=example,dc=com</code> if your domain is <code>example.com</code></p>"
+    },
+    {
+      "type": 3,
+      "title": "Linux Server Monitoring",
+      "description": "A pre-configured Linux monitoring solution using Docker.",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/monitoring.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "linux-monitoring/docker-compose.yml"
+      },
+      "name": "linux-monitoring",
+      "env": [
+        {
+          "name": "APPDATA_LOCATION",
+          "label": "App Data Location",
+          "description": "Directory used by containers in the stack for persistent storage",
+          "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+          "name": "SMARTCTL_INTERVAL",
+          "label": "SMART Poll Interval",
+          "description": "How often to poll disk devices for SMART status",
+          "default": "30s"
+        },
+        {
+          "name": "PROMETHEUS_RETENTION_TIME",
+          "label": "Prometheus Data Retention Time",
+          "description": "How long to store metrics data in Prometheus",
+          "default": "90d"
+        },
+        {
+          "name": "PROMETHEUS_RETENTION_SIZE",
+          "label": "Prometheus Data Retention Size",
+          "description": "Largest size to allow Prometheus data to grow before trimming",
+          "default": "150GB"
+        },
+        {
+          "name": "PROMETHEUS_ENABLE_REMOTE_WRITES",
+          "label": "Enable Remote Writes for Prometheus",
+          "description": "Enable the Prometheus API endpoint that receives remote write requests",
+          "select": [
+            {
+              "text": "No",
+              "value": "false",
+              "default": true
+            },
+            {
+              "text": "Yes",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "name": "PROMETHEUS_SERVER_PORT",
+          "label": "Prometheus Server Port",
+          "description": "Port where the Prometheus web portal and API endpoint will be accessible",
+          "default": "9090"
+        },
+        {
+          "name": "GRAFANA_WEB_PORT",
+          "label": "Grafana Web Port",
+          "description": "Port where the Grafana website will be accessible",
+          "default": "3000"
+        }
+      ],
+      "id": 9,
+      "note": "<p>\n    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack by running the following on the server being deployed:\n</p>\n<pre>\nwget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring.sh | bash\n</pre>\n<p>\n    See the <a target='_blank'\n        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring'>template README</a> or\n    the related <a target='_blank'\n        href='https://thedebugged.life/real-time-server-monitoring-with-prometheus-and-grafana/'>blog post</a> for more\n    info.\n</p>"
+    },
+    {
+      "type": 1,
+      "title": "Tailscale",
+      "description": "A secure, peer-to-peer VPN based on WireGuard that lets you create a private network between your devices using encrypted tunnels and automatic NAT traversal.",
+      "categories": [
+        "network",
+        "vpn"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/tailscale.png",
+      "image": "tailscale/tailscale:latest",
+      "name": "tailscale",
+      "network": "host",
+      "restart_policy": "unless-stopped",
+      "env": [
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "America/Los_Angeles"
+        },
+        {
+          "name": "TS_AUTH_ONCE",
+          "label": "Remember Auth Token",
+          "description": "Attempt to log in only if not already logged in. False by default, to forcibly log in every time the container starts.",
+          "select": [
+            {
+              "text": "No",
+              "value": "false"
+            },
+            {
+              "text": "Yes",
+              "value": "true",
+              "default": true
+            }
+          ]
+        },
+        {
+          "name": "TS_AUTHKEY",
+          "label": "Authorization Key",
+          "description": "Used to authenticate the container on first run."
+        },
+        {
+          "name": "TS_STATE_DIR",
+          "label": "Tailscaled State Location",
+          "description": "Directory where the state of tailscaled is stored. This needs to persist across container restarts.",
+          "default": "/var/lib/tailscale",
+          "preset": true
+        },
+        {
+          "name": "TS_ENABLE_METRICS",
+          "label": "Enable Metrics Endpoint",
+          "description": "Set to true to enable an unauthenticated /metrics endpoint at the Local Address and Port (TS_LOCAL_ADDR_PORT).",
+          "select": [
+            {
+              "text": "No",
+              "value": "false",
+              "default": true
+            },
+            {
+              "text": "Yes",
+              "value": "true"
+            }
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/var/lib/tailscale",
+          "bind": "/srv/appdata/tailscale"
+        }
+      ],
+      "id": 10,
+      "note": "<h4>Application Data</h4>\n<p>The container is pre-configured to store persistent data for Tailscale under <code>/srv/appdata/tailscale</code>.\n    Persistent storage is required to remember the authorization token across container restart and upgrade.</p>\n<p>You may change the location by expanding <em>Show advanced options</em> below, then look under <em>Volume\n        mapping</em>.</p>\n<p>To create the application data folder:</p>\n<pre>\nsudo mkdir -p /srv/appdata\nsudo chown $USER /srv/appdata\n</pre>\n<h4>Authorization Key</h4>\n<p>The container requires an <strong>authorization key</strong> to successfully connect to your Tailscale network. You\n    can obtain one from your Tailscale admin console, then look under <strong>Settings</strong>.</p>\n<h4>Timezone</h4>\n<p>It is recommended to set the timezone variable according to your geographic location. See <a\n        href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\" target=\"_blank\">this wiki page</a> for\n    possible values.</p>\n<h4>Network Configuration</h4>\n<h5>⬩ Recommended mode: <code>host</code></h5>\n<p>It is recommended to set the network of this container to <code>host</code>. This gives other authorized clients\n    connected to the Tailscale network access to all services running on the host.</p>\n<h5>⬩ Alternative mode: <code>bridge</code></h5>\n<p>It is possible to run <strong>Tailscale</strong> in <code>bridge</code> network mode instead. If you run on this\n    mode, you may need to:</p>\n<p>\n    → Add the environment variable <code>TS_DEST_IP</code> and set it to the IP address of the\n    gateway for the bridge network, e.g. <code>172.17.0.1</code><br />\n    → Add the environment variable <code>TS_HOSTNAME</code> and set it to the machine name of the container\n    host.<br />\n    → Add a mapping for the port specified in the environment variable\n    <code>TS_LOCAL_ADDR_PORT</code> (defaults to 9002) if the health-check or metrics endpoint is enabled\n</p>"
+    },
+    {
+      "type": 3,
+      "title": "Linux Server Monitoring (Agent)",
+      "description": "Collects server metrics and sends them to a central Prometheus aggregation service.",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/monitoring.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "linux-monitoring-agent/docker-compose.yml"
+      },
+      "name": "linux-monitoring-agent",
+      "env": [
+        {
+          "name": "APPDATA_LOCATION",
+          "label": "App Data Location",
+          "description": "Directory used by containers in the stack for persistent storage",
+          "default": "/srv/appdata/linux-monitoring-agent"
+        },
+        {
+          "name": "SMARTCTL_INTERVAL",
+          "label": "SMART Poll Interval",
+          "description": "How often to poll disk devices for SMART status",
+          "default": "30s"
+        }
+      ],
+      "id": 11,
+      "note": "<p>\n    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack running the following on the server being deployed:\n</p>\n<pre>\nwget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-agent.sh | bash\n</pre>\n<p>\n    See the <a target='_blank'\n        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring-agent'>template README</a>\n</p>"
+    },
+    {
+      "type": 3,
+      "title": "Linux Server Monitoring (Agent) [arm|arm64]",
+      "description": "Collects server metrics and sends them to a central Prometheus aggregation service.",
+      "categories": [
+        "monitoring"
+      ],
+      "platform": "linux",
+      "logo": "https://files.thedebugged.life/portainer/monitoring.png",
+      "repository": {
+        "url": "https://github.com/thedebuggedlife/portainer-templates",
+        "stackfile": "linux-monitoring-agent-arm/docker-compose.yml"
+      },
+      "name": "linux-monitoring-agent",
+      "env": [
+        {
+          "name": "APPDATA_LOCATION",
+          "label": "Application Data Location",
+          "description": "Directory used by containers in the stack for persistent storage",
+          "default": "/srv/appdata/linux-monitoring-agent"
+        }
+      ],
+      "id": 12,
+      "note": "<p>\n    Application data <b>MUST</b> be set up <b>BEFORE</b> deploying this stack running the following on the server being deployed:\n</p>\n<pre>\nwget -qO- https://thedebuggedlife.github.io/portainer-templates/appdata/linux-monitoring-agent-arm.sh | bash\n</pre>\n<p>\n    See the <a target='_blank'\n        href='https://github.com/thedebuggedlife/portainer-templates/tree/main/linux-monitoring-agent-arm'>template README</a>\n</p>"
+    }
+  ]
+}

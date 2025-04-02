@@ -172,7 +172,7 @@ save_secrets() {
     create_secret "${SECRETS_PATH}authelia_session_secret"
     create_secret "${SECRETS_PATH}authelia_storage_encryption_key"
     create_secret "${SECRETS_PATH}ldap_jwt_secret"
-    create_secret "${SECRETS_PATH}ldap_seed_key"
+    create_secret "${SECRETS_PATH}ldap_key_seed"
     create_secret "${SECRETS_PATH}ldap_authelia_password"
     create_secret "${SECRETS_PATH}oidc_hmac_secret"
     create_password_digest_pair "${SECRETS_PATH}oidc_immich"

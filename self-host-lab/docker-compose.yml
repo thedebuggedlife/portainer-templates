@@ -12,8 +12,8 @@ secrets:
     file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/smtp_password
   ldap_jwt_secret:
     file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/ldap_jwt_secret
-  ldap_seed_key:
-    file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/ldap_seed_key
+  ldap_key_seed:
+    file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/ldap_key_seed
   ldap_admin_password:
     file: ${APPDATA_LOCATION:-/srv/appdata}/secrets/ldap_admin_password
   ldap_authelia_password:
@@ -97,16 +97,17 @@ services:
     networks:
       - proxy
     volumes: 
-      - ${APPDATA_LOCATION:-/srv/appdata}/traefik:/etc/lldap
+      - ${APPDATA_LOCATION:-/srv/appdata}/lldap:/data
     secrets:
       - ldap_jwt_secret
-      - ldap_seed_key
+      - ldap_key_seed
+      - ldap_admin_password
     environment:
       TZ: ${TZ:-America/Los_Angeles}
       LLDAP_JWT_SECRET_FILE: /run/secrets/ldap_jwt_secret
       LLDAP_KEY_SEED_FILE: /run/secrets/ldap_key_seed
       LLDAP_LDAP_BASE_DN: ${CF_DOMAIN_CN}
-      LLDAP_LDAP_USER_PASS_FILE: /run/secrets/ldap_user_password
+      LLDAP_LDAP_USER_PASS_FILE: /run/secrets/ldap_admin_password
     labels:
       dns.skip: true
       traefik.enable: true

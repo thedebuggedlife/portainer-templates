@@ -182,6 +182,7 @@ save_secrets() {
     if [ $? -ne 0 ]; then
         return 1
     fi
+    chmod 644 "${SECRETS_PATH}"*
 }
 
 create_appdata_location() {

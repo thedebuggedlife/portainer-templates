@@ -48,9 +48,13 @@ services:
     restart: unless-stopped
     networks: 
       - proxy
-    command: ['tunnel', '--no-autoupdate', '--cred-file', '/run/secrets/cloudflare_tunnel_token', 'run', '--url', 'http://traefik:80']
+    command: ['tunnel', 'run', '${CF_TUNNEL_ID}']
     secrets:
       - cloudflare_tunnel_token
+    environment:
+      NO_AUTOUPDATE: true
+      TUNNEL_CRED_FILE: /run/secrets/cloudflare_tunnel_token
+      TUNNEL_URL: http://traefik:80
   traefik:
     container_name: traefik
     image: traefik:v3.3

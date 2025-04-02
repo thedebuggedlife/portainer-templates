@@ -646,15 +646,16 @@ configure_tailscale() {
         return 1
     fi
     echo "Tailscale is connected."
-    local zone_id=$(cloudflare_get_zone_id)
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-    echo "Creating catch-all record with Tailscale IP: $tailscale_ip" >&2
-    cloudflare_add_or_update_record $zone_id "A" "*" "$tailscale_ip"
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
+    save_env TAILSCALE_IP "$tailscale_ip"
+    # local zone_id=$(cloudflare_get_zone_id)
+    # if [ $? -ne 0 ]; then
+    #     return 1
+    # fi
+    # echo "Creating catch-all record with Tailscale IP: $tailscale_ip" >&2
+    # cloudflare_add_or_update_record $zone_id "A" "*" "$tailscale_ip"
+    # if [ $? -ne 0 ]; then
+    #     return 1
+    # fi
 }
 
 check_docker() {

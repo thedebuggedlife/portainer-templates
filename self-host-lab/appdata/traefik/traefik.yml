@@ -11,23 +11,23 @@ entryPoints:
         readTimeout: 600s
         idleTimeout: 600s
         writeTimeout: 600s
-  forwardedHeaders:
-    # Trust all forwarded headers
-    insecure: true
+    forwardedHeaders:
+      # Trust all forwarded headers
+      insecure: true
     http:
-    middlewares:
-      - securityHeaders
+      middlewares:
+        - securityHeaders@file
   
   tailnet:
     address: :443
-  http:
-    middlewares:
-      - securityHeaders
-    tls:
-      certResolver: tailnetResolver
-    # domains:
-    #   - main: ==> Use $TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_MAIN ("*.example.com")
-    #     sans: ==> Use $TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_SANS ("example.com")
+    http:
+      middlewares:
+        - securityHeaders@file
+      tls:
+        certResolver: tailnetResolver
+        # domains:
+        #   - main: ==> Use $TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_MAIN ("*.example.com")
+        #     sans: ==> Use $TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_SANS ("example.com")
 
 # Certificate resolvers for SSL connections
 certificatesResolvers:
@@ -40,46 +40,14 @@ certificatesResolvers:
         propagation:
           delayBeforeChecks: 120s
 
-http:
-  middlewares:
-    securityHeaders:
-      headers:
-        customResponseHeaders:
-          server: ""
-        sslProxyHeaders:
-          X-Forwarded-Proto: https
-        referrerPolicy: "strict-origin-when-cross-origin"
-        hostsProxyHeaders:
-          - "X-Forwarded-Host"
-        contentTypeNosniff: true
-        browserXssFilter: true
-        forceSTSHeader: true
-        stsIncludeSubdomains: true
-        stsSeconds: 63072000
-        stsPreload: true
-  # Add to sites that do not want their content indexed by search engines (e.g. Google)
-    noIndexHeaders:
-      headers:
-        customResponseHeaders:
-          X-Robots-Tag: "noindex,nofollow"
-    # Add to sites where Authelia auth needs to be applied by Traefik itself
-  authelia:
-      forwardauth:
-        # address: ==> Use $TRAEFIK_HTTP_MIDDLEWARES_AUTH_FORWARDAUTH_ADDRESS ("http://authelia:9091/api/verify?rd=https://auth.example.com/")
-        trustForwardHeader: true
-        authResponseHeaders:
-          - Remote-User
-          - Remote-Groups
-          - Remote-Name
-          - Remote-Email
-
 providers:
   providersThrottleDuration: 2s
+  file:
+    filename: /etc/traefik/dynamic-config.yml
+    watch: true
   docker:
     endpoint: "unix:///var/run/docker.sock"
     watch: true
-    # network: ==> Use $TRAEFIK_PROVIDERS_DOCKER_NETWORK ("proxy")
-    # defaultRule: ==> Use $TRAEFIK_PROVIDERS_DOCKER_DEFAULTRULE ("Host(`{{ lower (trimPrefix `/` .Name )}}.example.com`)")
     exposedByDefault: false
 
 # serversTransport:
@@ -88,7 +56,7 @@ providers:
 # Enable admin web UI
 api:
   dashboard: true
-  insecure: false
+  insecure: true
 
 # Enable Prometheus scrape endpoint
 metrics:
@@ -105,3 +73,5 @@ metrics:
 # Log level INFO|DEBUG|ERROR
 log:
   level: INFO
+
+# accessLog: {}

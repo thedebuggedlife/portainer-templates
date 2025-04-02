@@ -81,15 +81,16 @@ services:
       TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_MAIN: "*.${CF_DOMAIN_NAME}"
       TRAEFIK_ENTRYPOINTS_tailnet_HTTP_TLS_DOMAINS_0_SANS: ${CF_DOMAIN_NAME}
       TRAEFIK_CERTIFICATERESOLVERS_tailnetResolver_ACME_EMAIL: ${CF_ADMIN_EMAIL}
-      TRAEFIK_PROVIDERS_DOCKER_DEFAULTRULE: Host(`{{ lower (trimPrefix `/` .Name )}}.${CF_DOMAIN_NAME}`)
       TRAEFIK_SERVERSTRANSPORT_INSECURESKIPVERIFY: true
       TRAEFIK_HTTP_MIDDLEWARES_AUTH_FORWARDAUTH_ADDRESS: http://authelia:9091/api/verify?rd=https://authelia.${CF_DOMAIN_NAME}/
     labels:
+      dns.manage: true
+      dns.content: ${TAILSCALE_IP}
       traefik.enable: true
       traefik.http.routers.api.entryPoints: tailnet
       traefik.http.routers.api.service: api@internal
-      traefik.http.routers.api.middlewares: authelia@file
-      traefik.http.services.api.loadbalancer.server.port: 8080
+      traefik.http.routers.api.rule: Host(`traefik.${CF_DOMAIN_NAME}`)
+      # traefik.http.routers.api.middlewares: authelia@file
   lldap:
     container_name: lldap
     image: lldap/lldap:stable
@@ -109,10 +110,13 @@ services:
       LLDAP_LDAP_BASE_DN: ${CF_DOMAIN_CN}
       LLDAP_LDAP_USER_PASS_FILE: /run/secrets/ldap_admin_password
     labels:
-      dns.skip: true
+      dns.manage: true
+      dns.content: ${TAILSCALE_IP}
       traefik.enable: true
       traefik.http.routers.lldap.entryPoints: tailnet
+      traefik.http.routers.lldap.rule: Host(`lldap.${CF_DOMAIN_NAME}`)
       traefik.http.services.lldap.loadbalancer.server.port: 17170
+      # traefik.http.routers.api.middlewares: authelia@file
   authelia:
     container_name: authelia
     image: authelia/authelia:latest
@@ -152,9 +156,11 @@ services:
       X_AUTHELIA_CONFIG_FILTERS: template
     labels:
       dns.manage: true
+      dns.cloudflare.proxied: true
       traefik.enable: true
       traefik.http.routers.authelia.entryPoints: cloudflare
-      traefik.http.services.authelia.loadbalancer.server.port: 17170
+      traefik.http.routers.authelia.rule: Host(`authelia.${CF_DOMAIN_NAME}`)
+      traefik.http.services.authelia.loadbalancer.server.port: 9091
   trafego:
     container_name: trafego
     image: avargaskun/trafegodns:latest
@@ -169,9 +175,12 @@ services:
     environment:
       DNS_PROVIDER: cloudflare
       DNS_DEFAULT_MANAGE: false
+      DNS_DEFAULT_PROXIED: false
+      DNS_DEFAULT_CONTENT: ${CF_TUNNEL_ID}.cfargotunnel.com
       CLOUDFLARE_TOKEN_FILE: /run/secrets/cloudflare_dns_api_token
-      CLOUDFLARE_ZONE: ${CF_TUNNEL_ID}.cfargotunnel.com
+      CLOUDFLARE_ZONE: ${CF_DOMAIN_NAME}
       TRAEFIK_API_URL: http://traefik:8080/api
+      S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 0
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
@@ -185,6 +194,9 @@ services:
     secrets:
       - portainer_admin_password
     labels:
-      traefik.enable: true
+      # dns.manage: true
+      dns.content: ${TAILSCALE_IP}
+      # traefik.enable: true
       traefik.http.routers.portainer.entryPoints: tailnet
-      traefik.http.services.lldap.loadbalancer.server.port: 8000
+      traefik.http.services.portainer.loadbalancer.server.port: 8000
+      # traefik.http.routers.api.middlewares: authelia@file
